@@ -11,4 +11,4 @@ Requirements:
 * Tool is relatively compact and has minimal dependencies. 
 
 Outline:
-Python will be used due to it's operability with the BatViz tooling. If necessary, Rust with Python callings could be used in order to provide an executable binary, but this option is less ideal. The program will import the modified evalys tooling and batvis and make use of existing methods in order to minimize the amount of new work required and streamline the operation and integration of these tools.  
+Shell script will be executed by cron, which will generate the sacct dump then launch the program. Python will be used due to it's operability with the BatViz tooling. If necessary, Rust with Python callings could be used in order to provide an executable binary, but this option is less ideal. The program will import the modified evalys tooling and batvis and make use of existing methods in order to minimize the amount of new work required and streamline the operation and integration of these tools.
