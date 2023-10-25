@@ -1,4 +1,8 @@
 import matplotlib
+from batvis.utils import getMaxJobLen
+from evalys.utils import cut_workload
+from evalys.visu.gantt import plot_gantt_df
+
 import sanitization
 from evalys.jobset import JobSet
 
@@ -41,10 +45,18 @@ def ganttLastNHours(outJobsCSV, hours, outfile):
         else:
             chartEndTime = last_line[endColIndex]
 
+    chartStartTime = chartEndTime - hours*3600
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
+    # TODO I'll need to adapt this so it'll work with my col names and such
+    maxJobLen = getMaxJobLen(df)
     js = JobSet.from_df(df, resource_bounds=None)
-        js.plot(with_gantt=True, simple=True)
+    # Cut the jobset
+    cut_js = cut_workload(js.df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
+
+    # TODO I'll need to trim the plot too
+    plot_gantt_df(cut_js, cut_js.res_bounds, chartStartTime, chartEndTime, title="Status for cluster X") # TODO put actual cluster name here
+    js.plot(with_gantt=True, simple=True)
     matplotlib.pyplot.show()
     # matplotlib.pyplot.savefig(
     #     outfile,
