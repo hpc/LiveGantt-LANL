@@ -7,7 +7,8 @@ from evalys.jobset import JobSet
 
 
 def main():
-    # Define the file to pull data from TODO, this will connect back to the shell script
+    # TODO Make sure when I copy over the info from the Notes script that I use sed to run the find and replace for pipes into commas
+    # Define the file to pull data from TODO, this will connect back to the shell script - it will write to some temp file, and I'll read from that temp file. Alternately, see if I don't need a shell script and could just run that Notes tasks from here
     inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
                 "-identifiers.csv"
     # Produce the chart
@@ -23,7 +24,6 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     """
     with open(outJobsCSV) as f:
         header = f.readlines()[0].split(",")
-        print(header)
         indices = []
         for i, elem in enumerate(header):
             if 'End' in elem:
@@ -43,11 +43,12 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
             chartEndTime = last_line[startColIndex]
         else:
             chartEndTime = last_line[endColIndex]
-
-    chartStartTime = chartEndTime - hours*3600
+    # TODO Hmmmmmmm this time format will be somewhat annoying. My programs expect seconds since start, but that is not a number that I have. Should I convert to seconds then set t=0 to the amount of time backwards from 0?
+    chartStartTime = int(chartEndTime) - hours*3600
     # Sanitize the data from the inputfile
-    # TODO I have a feeling that this will need to be modified. Perhaps I will need to do some DF calculations so that I get columns that look the way that evalys expects
+    # TODO This will need to be modified. Perhaps I will need to do some DF calculations during sani so that I get columns that look the way that evalys expects
     df = sanitization.sanitizeFile(outJobsCSV)
+    print(df)
     maxJobLen = getMaxJobLen(df)
     js = JobSet.from_df(df, resource_bounds=None)
     # Cut the jobset
@@ -69,7 +70,7 @@ def getMaxJobLen(totaldf):
     :returns: the length of the longest job in the df
     """
     # TODO Does this even work? Test!
-    maxJobLen = (totaldf["End"]-totaldf["Start"]).max()
+    maxJobLen = (totaldf["End"]-totaldf["Start"]).max() # I had to substitute execution time for End - Start. If I wind up having to just do that in preprocessing, then switch this back to keep it simple
     # print("Maximum job length parsed as: " + str(maxJobLen))
     return maxJobLen
 

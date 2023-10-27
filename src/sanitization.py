@@ -6,6 +6,7 @@ def twenty22():
     Defines a series of variables linked to the column names of the format being used
     :return:
     """
+    # TODO I don't think this will be enough. I need to make sure that when I bring in the DF that I am actually making the columns into what evalys needs them to be - try to get it to match the old sim output data
     global endState, wallclockLimit, reqNodes, submit, start, end, jobId
     endState = "State"
     wallclockLimit = "Timelimit"
@@ -24,12 +25,13 @@ def sanitizeFile(inputfile):
     """
 
     # Using 2022 fog data
+    # TODO Ensure that this does to the header titles what I expect it to
     twenty22()
 
     df = pd.read_csv(inputfile)
     df.head()
 
-    # TODO I don't want to overfilter this. I can eventually see which ones of these actually make sense
+    # TODO I don't want to overfilter this. I can eventually see which ones of these actually make sense for live data as opposed to sim data.
 
     # Remove jobs that were cancelled
     df[endState] = df[endState].replace('^CANCELLED by \d+', 'CANCELLED', regex=True)
