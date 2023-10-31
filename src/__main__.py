@@ -1,3 +1,6 @@
+import getopt
+import sys
+
 import matplotlib
 from evalys.utils import cut_workload
 from evalys.visu.gantt import plot_gantt_df
@@ -6,9 +9,23 @@ import sanitization
 from evalys.jobset import JobSet
 
 
-def main():
-    # TODO Make sure when I copy over the info from the Notes script that I use sed to run the find and replace for pipes into commas
-    # Define the file to pull data from TODO, this will connect back to the shell script - it will write to some temp file, and I'll read from that temp file. Alternately, see if I don't need a shell script and could just run that Notes tasks from here
+def main(argv):
+    inputpath = ""
+    try:
+        opts, args = getopt.getopt(
+            argv,
+            "i",
+            [
+                "ipath=",
+            ],
+        )
+    except getopt.GetoptError:
+        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath>")
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == "-i":
+            inputpath = arg
+    # TODO Make sure when I copy over the info from the collectSacctDB.sh script that I use sed to run the find and replace for pipes into commas
     inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
                 "-identifiers.csv"
     # Produce the chart
