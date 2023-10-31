@@ -25,7 +25,6 @@ def main(argv):
     for opt, arg in opts:
         if opt == "-i":
             inputpath = arg
-    # TODO Make sure when I copy over the info from the collectSacctDB.sh script that I use sed to run the find and replace for pipes into commas
     inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
                 "-identifiers.csv"
     # Produce the chart
@@ -63,7 +62,6 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     # TODO Hmmmmmmm this time format will be somewhat annoying. My programs expect seconds since start, but that is not a number that I have. Should I convert to seconds then set t=0 to the amount of time backwards from 0?
     chartStartTime = int(chartEndTime) - hours*3600
     # Sanitize the data from the inputfile
-    # TODO This will need to be modified. Perhaps I will need to do some DF calculations during sani so that I get columns that look the way that evalys expects
     df = sanitization.sanitizeFile(outJobsCSV)
     print(df)
     maxJobLen = getMaxJobLen(df)

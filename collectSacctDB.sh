@@ -19,6 +19,4 @@ chmod 0444 slurm_version  ${GENERATED} ${OUT}
 
 sed 's/|/,/g' ${OUT} > temp.txt && mv temp.txt ${OUT}
 
-# TODO Sanitization
-
 python3 -m livegantt ${OUT}
