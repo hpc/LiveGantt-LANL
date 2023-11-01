@@ -1,5 +1,6 @@
 import getopt
 import sys
+import datetime
 
 import matplotlib
 from evalys.utils import cut_workload
@@ -9,22 +10,25 @@ import sanitization
 from evalys.jobset import JobSet
 
 
-def main(argv):
-    inputpath = ""
-    try:
-        opts, args = getopt.getopt(
-            argv,
-            "i",
-            [
-                "ipath=",
-            ],
-        )
-    except getopt.GetoptError:
-        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath>")
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == "-i":
-            inputpath = arg
+# def main(argv):
+def main():
+    # inputpath = ""
+    # try:
+    #     opts, args = getopt.getopt(
+    #         argv,
+    #         "i",
+    #         [
+    #             "ipath=",
+    #         ],
+    #     )
+    # except getopt.GetoptError:
+    #     print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath>")
+    #     sys.exit(2)
+    # for opt, arg in opts:
+    #     if opt == "-i":
+    #         inputpath = arg
+
+    # Debug option below
     inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
                 "-identifiers.csv"
     # Produce the chart
@@ -56,11 +60,17 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
         # seems to take under 10 milliseconds so I don't care about that level of optimization yet
 
         if last_line[endColIndex] == "Unknown":
-            chartEndTime = last_line[startColIndex]
+            chartEndTime = datetime.datetime.strptime(last_line[startColIndex], '%Y-%m-%dT%H:%M:%S')
         else:
-            chartEndTime = last_line[endColIndex]
+            chartEndTime = datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
     # TODO Hmmmmmmm this time format will be somewhat annoying. My programs expect seconds since start, but that is not a number that I have. Should I convert to seconds then set t=0 to the amount of time backwards from 0?
-    chartStartTime = int(chartEndTime) - hours*3600
+
+    # Normalize time here
+    eightHours = datetime.timedelta(hours=hours)
+    chartStartTime = chartEndTime- eightHours
+    print(chartStartTime)
+    print(chartEndTime)
+    # TODO Normalize time
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
     print(df)
