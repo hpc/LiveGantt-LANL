@@ -70,6 +70,7 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     chartStartTime = chartEndTime- eightHours
     print(chartStartTime)
     print(chartEndTime)
+    print(eightHours.total_seconds())
     # TODO Normalize time
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
