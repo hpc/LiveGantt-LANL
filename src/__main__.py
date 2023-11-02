@@ -2,6 +2,7 @@ import getopt
 import sys
 import datetime
 
+import batvis.utils
 import matplotlib
 from evalys.utils import cut_workload
 from evalys.visu.gantt import plot_gantt_df
@@ -32,7 +33,7 @@ def main():
     inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
                 "-identifiers.csv"
     # Produce the chart
-    ganttLastNHours(inputpath, 8, "test.txt", "Rocinante")
+    ganttLastNHours(inputpath, 72, "test.txt", "Rocinante")
 
 
 def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
@@ -67,7 +68,7 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
 
     # Normalize time here
     eightHours = datetime.timedelta(hours=hours)
-    chartStartTime = chartEndTime- eightHours
+    chartStartTime = chartEndTime - eightHours
     print(chartStartTime)
     print(chartEndTime)
     print(eightHours.total_seconds())
@@ -75,13 +76,13 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
     print(df)
-    maxJobLen = getMaxJobLen(df)
-    js = JobSet.from_df(df, resource_bounds=None)
+    maxJobLen = batvis.utils.getMaxJobLen(df)
+    js = JobSet.from_df(df, resource_bounds=(0, 1489))
     # Cut the jobset
-    cut_js = cut_workload(js.df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
+    cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
 
-    plot_gantt_df(cut_js, cut_js.res_bounds, chartStartTime, chartEndTime, title="Status for cluster "+clusterName)
-    js.plot(with_gantt=True, simple=True)
+    plot_gantt_df(cut_js, cut_js.res_bounds, chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
+    cut_js.plot(with_gantt=True, simple=True)
     matplotlib.pyplot.show()
     # matplotlib.pyplot.savefig(
     #     outfile,
@@ -89,16 +90,6 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     # )
     matplotlib.pyplot.close()
 
-def getMaxJobLen(totaldf):
-    """
-    Gets the length of the longest job in a dataframe
-
-    :returns: the length of the longest job in the df
-    """
-    # TODO Does this even work? Test!
-    maxJobLen = (totaldf["End"]-totaldf["Start"]).max() # I had to substitute execution time for End - Start. If I wind up having to just do that in preprocessing, then switch this back to keep it simple
-    # print("Maximum job length parsed as: " + str(maxJobLen))
-    return maxJobLen
 
 if __name__ == '__main__':
     main()

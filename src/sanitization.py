@@ -56,9 +56,9 @@ def sanitizeFile(inputfile):
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] > sanitizing_df[start]]
 
     formatted_df = sanitizing_df.rename(columns={
-        'JobID': 'job_id',
+        'JobID': 'jobID',
         'Submit': 'submission_time',
-        'NTasks': 'requested_number_of_resources',
+        'NNodes': 'requested_number_of_resources',
         # 'Timelimit': 'requested_time',
         'State': 'success',
         'Start': 'starting_time',
@@ -83,7 +83,7 @@ def sanitizeFile(inputfile):
 
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
-        'job_id',
+        'jobID',
         'workload_name',
         'submission_time',
         'requested_number_of_resources',
@@ -97,6 +97,5 @@ def sanitizeFile(inputfile):
         'stretch',
         'allocated_resources'
     ]]
-#  WIG: ['JobID', 'Priority', 'QOS', 'Partition', 'NNodes', 'NTasks', 'Submit', 'Eligible', 'Start', 'End', 'Timelimit','State', 'Reservation', 'Unnamed: 13']
 
     return formatted_df
