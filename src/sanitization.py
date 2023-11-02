@@ -58,7 +58,7 @@ def sanitizeFile(inputfile):
     formatted_df = sanitizing_df.rename(columns={
         'JobID': 'jobID',
         'Submit': 'submission_time',
-        'NNodes': 'requested_number_of_resources',
+        'NNodes': 'requested_number_of_resources', # TODO Well these aren't compatible. This MUST BE RESOLVED before any progress can be made
         # 'Timelimit': 'requested_time',
         'State': 'success',
         'Start': 'starting_time',
@@ -74,6 +74,7 @@ def sanitizeFile(inputfile):
 
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
+    formatted_df['purpose'] = 'job' # TODO I'm gonna need to either handle reservations or inject them as jobs or something
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
@@ -95,7 +96,8 @@ def sanitizeFile(inputfile):
         'waiting_time',
         'turnaround_time',
         'stretch',
-        'allocated_resources'
+        'allocated_resources',
+        'purpose',
     ]]
 
     return formatted_df
