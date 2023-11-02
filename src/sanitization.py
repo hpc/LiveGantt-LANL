@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 
 def twenty22():
@@ -54,4 +55,48 @@ def sanitizeFile(inputfile):
     # Remove jobs that have an end that is not after the start
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] > sanitizing_df[start]]
 
-    return sanitizing_df
+    formatted_df = sanitizing_df.rename(columns={
+        'JobID': 'job_id',
+        'Submit': 'submission_time',
+        'NTasks': 'requested_number_of_resources',
+        # 'Timelimit': 'requested_time',
+        'State': 'success',
+        'Start': 'starting_time',
+        'End': 'finish_time',
+    })
+
+    # Convert times into time format
+    columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
+    # Loop through the specified columns and convert values to datetime objects
+    for col in columns_to_convert:
+        formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
+
+
+    # Set default values for some columns
+    formatted_df['workload_name'] = 'w0'
+    formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
+    formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
+    formatted_df['requested_time'] = formatted_df['execution_time']
+    formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
+    formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
+    formatted_df['allocated_resources'] = formatted_df['requested_number_of_resources']
+
+    # Reorder the columns to match the specified order
+    formatted_df = formatted_df[[
+        'job_id',
+        'workload_name',
+        'submission_time',
+        'requested_number_of_resources',
+        'requested_time',
+        'success',
+        'starting_time',
+        'execution_time',
+        'finish_time',
+        'waiting_time',
+        'turnaround_time',
+        'stretch',
+        'allocated_resources'
+    ]]
+#  WIG: ['JobID', 'Priority', 'QOS', 'Partition', 'NNodes', 'NTasks', 'Submit', 'Eligible', 'Start', 'End', 'Timelimit','State', 'Reservation', 'Unnamed: 13']
+
+    return formatted_df
