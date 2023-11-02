@@ -77,11 +77,12 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     df = sanitization.sanitizeFile(outJobsCSV)
     print(df)
     maxJobLen = batvis.utils.getMaxJobLen(df)
-    js = JobSet.from_df(df, resource_bounds=(0, 1489))
+    # js = JobSet.from_df(df, resource_bounds=(0, 1489))
     # Cut the jobset
+    # TODO Make sure that this cut is working as intended
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
 
-    plot_gantt_df(cut_js, cut_js.res_bounds, chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
+    plot_gantt_df(cut_js, (0,1489), chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
     cut_js.plot(with_gantt=True, simple=True)
     matplotlib.pyplot.show()
     # matplotlib.pyplot.savefig(
