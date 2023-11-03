@@ -30,8 +30,7 @@ def main():
     #         inputpath = arg
 
     # Debug option below
-    inputpath = "/Users/vhafener/Repos/fog_analysis/slurm_outfiles/roci/sacct.out.rocinante.start=2019-12-01T00:00.no" \
-                "-identifiers.csv"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2019-12-01T00:00.no-identifiers.txt"
     # Produce the chart
     ganttLastNHours(inputpath, 72, "test.txt", "Rocinante")
 

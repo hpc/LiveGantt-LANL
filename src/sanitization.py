@@ -26,7 +26,6 @@ def sanitizeFile(inputfile):
     """
 
     # Using 2022 fog data
-    # TODO Ensure that this does to the header titles what I expect it to
     twenty22()
 
     df = pd.read_csv(inputfile)
@@ -58,19 +57,21 @@ def sanitizeFile(inputfile):
     formatted_df = sanitizing_df.rename(columns={
         'JobID': 'jobID',
         'Submit': 'submission_time',
-        'NNodes': 'requested_number_of_resources', # TODO Well these aren't compatible. This MUST BE RESOLVED before any progress can be made
-        # 'Timelimit': 'requested_time',
+        'NNodes': 'requested_number_of_resources',
+        # 'Timelimit': 'requested_time', # TODO There are like not quite necessary but would be nice to have. Currently is stubbed later on.
         'State': 'success',
         'Start': 'starting_time',
         'End': 'finish_time',
+        'NodeList': 'allocated_resources'
     })
 
     # Convert times into time format
     columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
     # Loop through the specified columns and convert values to datetime objects
-    for col in columns_to_convert:
+    for col in columns_to_convert: # TODO I could do __converters instead on pd.read_csv
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]").replace("|",","))
 
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
@@ -80,7 +81,6 @@ def sanitizeFile(inputfile):
     formatted_df['requested_time'] = formatted_df['execution_time']
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
-    formatted_df['allocated_resources'] = formatted_df['requested_number_of_resources']
 
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
