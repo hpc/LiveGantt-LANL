@@ -35,8 +35,10 @@ def sanitizeFile(inputfile):
 
     # Remove jobs that were cancelled
     df[endState] = df[endState].replace('^CANCELLED by \d+', 'CANCELLED', regex=True)
+
     # Remove jobs that have duplicate job IDs
-    sanitizing_df = df.drop_duplicates(subset=[jobId], keep="last")
+    # sanitizing_df = df.drop_duplicates(subset=[jobId], keep="last") # TODO Unstub?
+    sanitizing_df=df # TODO Unstub
     # Remove jobs that requested 0 nodes
     sanitizing_df = sanitizing_df.loc[sanitizing_df[reqNodes] != 0]
     # Remove jobs that have a wallclocklimit of 0
@@ -55,7 +57,7 @@ def sanitizeFile(inputfile):
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] > sanitizing_df[start]]
 
     formatted_df = sanitizing_df.rename(columns={
-        'JobID': 'jobID',
+        'JobIDRaw': 'jobID',
         'Submit': 'submission_time',
         'NNodes': 'requested_number_of_resources',
         # 'Timelimit': 'requested_time', # TODO There are like not quite necessary but would be nice to have. Currently is stubbed later on.
@@ -71,8 +73,7 @@ def sanitizeFile(inputfile):
     for col in columns_to_convert: # TODO I could do __converters instead on pd.read_csv
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
-    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]").replace("|",","))
-
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]").replace("|"," "))
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
     formatted_df['purpose'] = 'job' # TODO I'm gonna need to either handle reservations or inject them as jobs or something

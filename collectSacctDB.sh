@@ -20,6 +20,6 @@ chmod 0444 slurm_version  ${GENERATED} ${OUT}
 # TODO I've gotta do that
 sed 's/,/|/g' sacct.out.fog.start=2019-12-01T00:00.no-identifiers.txt > out.txt
 sed 's|/|,|g' sacct.out.fog.start=2019-12-01T00:00.no-identifiers.txt > out.txt
-sed 's/|/,/g' ${OUT} > temp.txt && mv temp.txt ${OUT}
+#sed 's/|/,/g' ${OUT} > temp.txt && mv temp.txt ${OUT}
 
 python3 -m livegantt ${OUT}
