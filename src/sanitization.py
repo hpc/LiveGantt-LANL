@@ -8,7 +8,6 @@ def twenty22():
     Defines a series of variables linked to the column names of the format being used
     :return:
     """
-    # TODO I don't think this will be enough. I need to make sure that when I bring in the DF that I am actually making the columns into what evalys needs them to be - try to get it to match the old sim output data
     global endState, wallclockLimit, reqNodes, submit, start, end, jobId
     endState = "State"
     wallclockLimit = "Timelimit"

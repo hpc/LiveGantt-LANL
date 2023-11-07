@@ -10,34 +10,41 @@ from evalys.visu.gantt import plot_gantt_df
 from procset import ProcInt
 
 import sanitization
-from evalys.jobset import JobSet
 
 
-# def main(argv):
-def main():
-    # inputpath = ""
-    # try:
-    #     opts, args = getopt.getopt(
-    #         argv,
-    #         "i",
-    #         [
-    #             "ipath=",
-    #         ],
-    #     )
-    # except getopt.GetoptError:
-    #     print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath>")
-    #     sys.exit(2)
-    # for opt, arg in opts:
-    #     if opt == "-i":
-    #         inputpath = arg
+def main(argv):
+    inputpath = ""
+    try:
+        opts, args = getopt.getopt(
+            argv,
+            "i:t:n:c",
+            [
+                "ipath=",
+                "timeframe=",
+                "name=",
+                "count=",
+            ],
+        )
+    except getopt.GetoptError:
+        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath>")
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == "-i":
+            inputpath = arg
+        elif opt in "-t":
+            timeframe = arg
+        elif opt in "-n":
+            name = arg
+        elif opt in "-c":
+            count = arg
 
     # Debug option below
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
     # Produce the chart
-    ganttLastNHours(inputpath, 72, "test.txt", "Snow", 368)
+    ganttLastNHours(inputpath, timeframe, name, count)
 
 
-def ganttLastNHours(outJobsCSV, hours, outfile, clusterName, clusterSize):
+def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -64,13 +71,11 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName, clusterSize):
     print(chartStartTime)
     print(chartEndTime)
     print(eightHours.total_seconds())
-    # TODO Normalize time
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
     maxJobLen = batvis.utils.getMaxJobLen(df)
     # js = JobSet.from_df(df, resource_bounds=(0, 1489))
     # Cut the jobset
-    # TODO Make sure that this cut is working as intended
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
 
