@@ -14,10 +14,13 @@ import sanitization
 
 def main(argv):
     inputpath = ""
+    timeframe=0
+    name="None"
+    count=0
     try:
         opts, args = getopt.getopt(
             argv,
-            "i:t:n:c",
+            "i:t:n:c:",
             [
                 "ipath=",
                 "timeframe=",
@@ -32,11 +35,11 @@ def main(argv):
         if opt == "-i":
             inputpath = arg
         elif opt in "-t":
-            timeframe = arg
+            timeframe = int(arg)
         elif opt in "-n":
             name = arg
         elif opt in "-c":
-            count = arg
+            count = int(arg)
 
     # Debug option below
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
@@ -51,6 +54,10 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     :param outfile: the file to write the produced chart out to
     :return:
     """
+    print("Input file:\t" + outJobsCSV)
+    print("Hours:\t" + str(hours))
+    print("Cluster name:\t"+clusterName)
+    print("Size of cluster:\t" + str(clusterSize))
     with open(outJobsCSV) as f:
         header = f.readlines()[0].split(",")
         indices = []
@@ -68,9 +75,8 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     # Normalize time here
     eightHours = datetime.timedelta(hours=hours)
     chartStartTime = chartEndTime - eightHours
-    print(chartStartTime)
-    print(chartEndTime)
-    print(eightHours.total_seconds())
+    print("Start of chart window:\t"+str(chartStartTime))
+    print("End of chart window:\t"+str(chartEndTime))
     # Sanitize the data from the inputfile
     df = sanitization.sanitizeFile(outJobsCSV)
     maxJobLen = batvis.utils.getMaxJobLen(df)
@@ -79,14 +85,17 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
 
-    plot_gantt_df(totalDf, ProcInt(0,clusterSize-1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName+ " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
+    plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
+                  title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     # cut_js.plot(with_gantt=True, simple=True)
-    matplotlib.pyplot.show()
-    # matplotlib.pyplot.savefig(
-    #     outfile,
-    #     dpi=300,
-    # )
+    # matplotlib.pyplot.show()
+    # TODO Scale this better
+    matplotlib.pyplot.savefig(
+        "./"+chartEndTime.strftime('%Y-%m-%dT%H:%M:%S')+".png",
+        dpi=300,
+    )
     matplotlib.pyplot.close()
+
 
 def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
     with open(outJobsCSV) as f:
@@ -98,9 +107,10 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
             if last_line[startColIndex] != "Unknown":
                 return datetime.datetime.strptime(last_line[startColIndex], '%Y-%m-%dT%H:%M:%S')
             else:
-                return seekLastLine(outJobsCSV, endColIndex, startColIndex, index=index-1)
+                return seekLastLine(outJobsCSV, endColIndex, startColIndex, index=index - 1)
         else:
             return datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
 
+
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
