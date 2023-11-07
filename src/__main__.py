@@ -34,7 +34,7 @@ def main():
     # Debug option below
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
     # Produce the chart
-    ganttLastNHours(inputpath, 72, "test.txt", "Rocinante")
+    ganttLastNHours(inputpath, 72, "test.txt", "Snow")
 
 
 def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):

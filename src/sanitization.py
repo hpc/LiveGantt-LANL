@@ -49,9 +49,10 @@ def sanitizeFile(inputfile):
 
     # TODO I don't want to overfilter this. I can eventually see which ones of these actually make sense for live data as opposed to sim data.
 
+    df[end] = df[end].replace('Unknown',datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
+
     # Remove jobs that were cancelled
     df[endState] = df[endState].replace('^CANCELLED by \d+', 'CANCELLED', regex=True)
-
     # Remove jobs that have duplicate job IDs
     # sanitizing_df = df.drop_duplicates(subset=[jobId], keep="last") # TODO Unstub?
     sanitizing_df=df # TODO Unstub
