@@ -89,7 +89,7 @@ def sanitizeFile(inputfile):
     for col in columns_to_convert: # TODO I could do __converters instead on pd.read_csv
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
-    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]").replace("|"," "))
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]sn").replace("|"," "))
 
 
 

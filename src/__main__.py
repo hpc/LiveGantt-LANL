@@ -32,7 +32,7 @@ def main():
     #         inputpath = arg
 
     # Debug option below
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2019-12-01T00:00.no-identifiers.txt"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
     # Produce the chart
     ganttLastNHours(inputpath, 72, "test.txt", "Rocinante")
 
@@ -48,24 +48,15 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
         header = f.readlines()[0].split(",")
         indices = []
         for i, elem in enumerate(header):
-            if 'End' in elem:
+            if 'Start' in elem:
                 indices.append(i)
         startColIndex = indices[0]
         for i, elem in enumerate(header):
-            if 'Start' in elem:
+            if 'End' in elem:
                 indices.append(i)
         endColIndex = indices[1]
 
-    with open(outJobsCSV) as f:
-        last_line = f.readlines()[-1].split(
-            ",")  # This could be done by seeking backwards from the end of the file as a binary, but for now this
-        # seems to take under 10 milliseconds so I don't care about that level of optimization yet
-
-        if last_line[endColIndex] == "Unknown":
-            chartEndTime = datetime.datetime.strptime(last_line[startColIndex], '%Y-%m-%dT%H:%M:%S')
-        else:
-            chartEndTime = datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
-    # TODO Hmmmmmmm this time format will be somewhat annoying. My programs expect seconds since start, but that is not a number that I have. Should I convert to seconds then set t=0 to the amount of time backwards from 0?
+    chartEndTime = seekLastLine(outJobsCSV, endColIndex, startColIndex, -1)
 
     # Normalize time here
     eightHours = datetime.timedelta(hours=hours)
@@ -84,7 +75,7 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
 
-    plot_gantt_df(totalDf, ProcInt(0,31), chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
+    plot_gantt_df(totalDf, ProcInt(0,367), chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
     # cut_js.plot(with_gantt=True, simple=True)
     matplotlib.pyplot.show()
     # matplotlib.pyplot.savefig(
@@ -93,6 +84,19 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     # )
     matplotlib.pyplot.close()
 
+def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
+    with open(outJobsCSV) as f:
+        last_line = f.readlines()[index].split(
+            ",")  # This could be done by seeking backwards from the end of the file as a binary, but for now this
+        # seems to take under 10 milliseconds so I don't care about that level of optimization yet
+
+        if last_line[endColIndex] == "Unknown":
+            if last_line[startColIndex] != "Unknown":
+                return datetime.datetime.strptime(last_line[startColIndex], '%Y-%m-%dT%H:%M:%S')
+            else:
+                return seekLastLine(outJobsCSV, endColIndex, startColIndex, index=index-1)
+        else:
+            return datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
 
 if __name__ == '__main__':
     main()
