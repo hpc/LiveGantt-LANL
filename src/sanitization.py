@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from procset import ProcSet
 
 
 def twenty22():
@@ -16,6 +17,21 @@ def twenty22():
     start = "Start"
     end = "End"
     jobId = "JobID"
+
+    # Define a function to strip leading zeroes from each individual value
+def strip_leading_zeroes(s):
+    values = s.split()
+    stripped_values = []
+    for value in values:
+        parts = value.split('-')
+        stripped_parts = [part.lstrip('0') for part in parts]
+        stripped_value = '-'.join(stripped_parts)
+        stripped_values.append(stripped_value)
+    return ' '.join(stripped_values)
+
+# Define a function to convert the string to a ProcSet
+def string_to_procset(s):
+    return ProcSet.from_str(s)
 
 
 def sanitizeFile(inputfile):
@@ -74,6 +90,13 @@ def sanitizeFile(inputfile):
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(lambda x: x.strip("fg[]").replace("|"," "))
+
+
+
+    # Apply the strip_leading_zeros function to the 'allocated resources' column
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(strip_leading_zeroes)
+    # Apply the string_to_procset function to the allocated_resources column
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
     formatted_df['purpose'] = 'job' # TODO I'm gonna need to either handle reservations or inject them as jobs or something

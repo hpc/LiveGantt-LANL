@@ -4,8 +4,10 @@ import datetime
 
 import batvis.utils
 import matplotlib
+import pandas
 from evalys.utils import cut_workload
 from evalys.visu.gantt import plot_gantt_df
+from procset import ProcInt
 
 import sanitization
 from evalys.jobset import JobSet
@@ -80,9 +82,10 @@ def ganttLastNHours(outJobsCSV, hours, outfile, clusterName):
     # Cut the jobset
     # TODO Make sure that this cut is working as intended
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
+    totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
 
-    plot_gantt_df(cut_js["running"], (0,1489), chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
-    cut_js.plot(with_gantt=True, simple=True)
+    plot_gantt_df(totalDf, ProcInt(0,31), chartStartTime, chartEndTime, title="Status for cluster " + clusterName)
+    # cut_js.plot(with_gantt=True, simple=True)
     matplotlib.pyplot.show()
     # matplotlib.pyplot.savefig(
     #     outfile,
