@@ -46,10 +46,10 @@ def main(argv):
             count = int(arg)
 
     # Debug options below
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    timeframe = 36
-    name = "Snow"
-    count = 368
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # name = "Snow"
+    # count = 368
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, name, count)
@@ -102,6 +102,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                   title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     # Save the figure out to a name based on the end time
+    # matplotlib.pyplot.show()
     matplotlib.pyplot.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
