@@ -88,16 +88,19 @@ def sanitizeFile(inputfile):
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] > sanitizing_df[start]]
     # Set the reservation field properly
     # TODO I can specify!!! For now it'll just be DAT,DST, and PreventMaint but in the future I can show it different for each!
-    # Define the replacement dictionary
-    # TODO This doesn't work lol
-    replacement_dict = {
-        '': 'job',
+
+    # Define the replacement rules using regular expressions
+    replacement_rules = {
         'DST': 'reservation',
-        'DAT*': 'reservation',
-        'PreventMaint': 'reservation'
+        'DAT.*': 'reservation',
+        'PreventMaint$': 'reservation',
+        None: 'job',
+        '': 'job',
     }
-    # Use the .replace() method with regex=True
-    sanitizing_df[reservation] = sanitizing_df[reservation].replace(replacement_dict, regex=True)
+
+    # Replace values in the "reservation" column based on the rules
+    sanitizing_df[reservation] = sanitizing_df[reservation].replace(replacement_rules, regex=True)
+    sanitizing_df.loc[~sanitizing_df[reservation].isin(['reservation', 'job']), reservation] = 'job'
 
     # Rename the columns in the incoming DF to the target names
     formatted_df = sanitizing_df.rename(columns={
@@ -129,8 +132,7 @@ def sanitizeFile(inputfile):
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
-    formatted_df[
-        'purpose'] = 'job'  # TODO I'm gonna need to either handle reservations or inject them as jobs or something
+    # TODO I'm gonna need to either handle reservations or inject them as jobs or something
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
