@@ -11,6 +11,7 @@ from procset import ProcInt
 
 import sanitization
 
+matplotlib.pyplot.rcParams.update({'font.size': 6})
 
 def main(argv):
     inputpath = ""
@@ -43,6 +44,9 @@ def main(argv):
 
     # Debug option below
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # name = "Snow"
+    # count = 368
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, name, count)
 
@@ -84,7 +88,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     # Cut the jobset
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
-
+    # TODO Use iPython for interactivity??? Ask steve first.
     plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                   title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     # cut_js.plot(with_gantt=True, simple=True)
