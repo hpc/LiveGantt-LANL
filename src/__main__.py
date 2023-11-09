@@ -1,4 +1,5 @@
 import getopt
+import os
 import sys
 import datetime
 import batvis.utils
@@ -53,6 +54,10 @@ def main(argv):
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, name, count)
+
+    # Cleanup workdir
+    os.remove("out.txt")
+    os.remove(inputpath)
 
 
 def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
@@ -109,6 +114,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     )
     # Close the figure & terminate program
     matplotlib.pyplot.close()
+
 
 
 def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):

@@ -1,10 +1,7 @@
 #!/bin/sh
 
 sinfo --version > slurm_version
-# TODO Make sure that naming is dynamic & unblocked
 GENERATED=Generated:`date +%FT%T`
-\rm -f Generated:* >/dev/null 2>&1
-touch ${GENERATED}
 
 printf "db initialized 2019-12-01\n"
 CLUSTERNAME=$(scontrol show config | awk '/ClusterName/ {print $NF}')

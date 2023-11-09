@@ -132,7 +132,6 @@ def sanitizeFile(inputfile):
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
-    # TODO I'm gonna need to either handle reservations or inject them as jobs or something
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
