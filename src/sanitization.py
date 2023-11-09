@@ -8,7 +8,7 @@ def twenty22():
     Defines a series of variables linked to the column names of the format being used
     :return:
     """
-    global endState, wallclockLimit, reqNodes, submit, start, end, jobId
+    global endState, wallclockLimit, reqNodes, submit, start, end, jobId, reservation
     endState = "State"
     wallclockLimit = "Timelimit"
     reqNodes = "NNodes"
@@ -16,6 +16,7 @@ def twenty22():
     start = "Start"
     end = "End"
     jobId = "JobID"
+    reservation = "Reservation"
 
     # Define a function to strip leading zeroes from each individual value
 
@@ -85,6 +86,18 @@ def sanitizeFile(inputfile):
     sanitizing_df = sanitizing_df.loc[~sanitizing_df[start].isna()]
     # Remove jobs that have an end that is not after the start
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] > sanitizing_df[start]]
+    # Set the reservation field properly
+    # TODO I can specify!!! For now it'll just be DAT,DST, and PreventMaint but in the future I can show it different for each!
+    # Define the replacement dictionary
+    # TODO This doesn't work lol
+    replacement_dict = {
+        '': 'job',
+        'DST': 'reservation',
+        'DAT*': 'reservation',
+        'PreventMaint': 'reservation'
+    }
+    # Use the .replace() method with regex=True
+    sanitizing_df[reservation] = sanitizing_df[reservation].replace(replacement_dict, regex=True)
 
     # Rename the columns in the incoming DF to the target names
     formatted_df = sanitizing_df.rename(columns={
@@ -94,7 +107,8 @@ def sanitizeFile(inputfile):
         'State': 'success',
         'Start': 'starting_time',
         'End': 'finish_time',
-        'NodeList': 'allocated_resources'
+        'NodeList': 'allocated_resources',
+        'Reservation': 'purpose'
     })
 
     # Convert times into the preferred time format
