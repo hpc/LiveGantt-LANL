@@ -112,7 +112,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
     )
-    # Close the figure & terminate program
+    # Close the figure
     matplotlib.pyplot.close()
 
 

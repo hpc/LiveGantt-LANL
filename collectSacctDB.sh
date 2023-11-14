@@ -14,7 +14,6 @@ time sacct --format=${FIELDS} ${ARGS} ${START} > ${OUT}
 
 chmod 0444 slurm_version  ${GENERATED} ${OUT}
 
-# TODO I've gotta do that
 sed 's/,/|/g' ${OUT} > out.txt
 sed 's|/|,|g' out.txt > ${OUT}
 

@@ -18,8 +18,6 @@ def twenty22():
     jobId = "JobID"
     reservation = "Reservation"
 
-    # Define a function to strip leading zeroes from each individual value
-
 
 def strip_leading_zeroes(s):
     """
@@ -132,6 +130,7 @@ def sanitizeFile(inputfile):
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
+    # Calculate waiting, execution, requested, turnaround, and stretch times
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
