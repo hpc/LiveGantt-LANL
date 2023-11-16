@@ -56,8 +56,8 @@ def main(argv):
     ganttLastNHours(inputpath, timeframe, name, count)
 
     # Cleanup workdir
-    os.remove("out.txt")
-    os.remove(inputpath)
+    # os.remove("out.txt")
+    # os.remove(inputpath)
 
 
 def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):

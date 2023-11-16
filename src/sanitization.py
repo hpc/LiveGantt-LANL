@@ -122,7 +122,7 @@ def sanitizeFile(inputfile):
     # on. Then replace the pipe separator used in the allocated resources field with a space, which is preferred for
     # parsing here-on-in
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
-        lambda x: x.strip("fg[]sn").replace("|", " "))
+        lambda x: x.strip("fg[]snid").replace("|", " "))
 
     # Apply the strip_leading_zeros function to the 'allocated resources' column
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(strip_leading_zeroes)
