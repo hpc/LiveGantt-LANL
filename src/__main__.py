@@ -1,5 +1,4 @@
 import getopt
-import os
 import sys
 import datetime
 import batvis.utils
@@ -18,7 +17,6 @@ matplotlib.pyplot.rcParams.update({'font.size': 6})
 def main(argv):
     inputpath = ""
     timeframe = 0
-    name = "None"
     count = 0
     # Parse provided arguments and set variables to their values
     try:
