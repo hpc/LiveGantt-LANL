@@ -103,9 +103,9 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     # Plot the DF
     # TODO I should probably consider doing something about scaling w/ cluster size. FigSize etc
     if clusterName != "chicoma" and clusterName != "rocinante":
-        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
+        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     else:
-        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
+        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     # Save the figure out to a name based on the end time
     # matplotlib.pyplot.show()
     matplotlib.pyplot.savefig(

@@ -1,4 +1,9 @@
 yaspin
-matplotlib
+matplotlib~=3.8.0
 seaborn
-pandas
+pandas~=2.1.1
+
+batvis~=1.0.0
+evalys~=4.0.6
+procset~=1.0
+setuptools~=65.5.1
