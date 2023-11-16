@@ -24,49 +24,46 @@ def main(argv):
     try:
         opts, args = getopt.getopt(
             argv,
-            "i:t:n:c:",
+            "i:t:c:",
             [
                 "ipath=",
                 "timeframe=",
-                "name=",
                 "count=",
             ],
         )
     # If options provided are incorrect, fail out
     except getopt.GetoptError:
-        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -n <Cluster name> -c <Node count>")
+        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -c <Node count>")
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-i":
             inputpath = arg
         elif opt in "-t":
             timeframe = int(arg)
-        elif opt in "-n":
-            name = arg
         elif opt in "-c":
             count = int(arg)
 
     # Debug options below
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
     # timeframe = 36
-    # name = "Snow"
     # count = 368
 
     # Produce the chart
-    ganttLastNHours(inputpath, timeframe, name, count)
+    ganttLastNHours(inputpath, timeframe, count)
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
 
-def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
+def ganttLastNHours(outJobsCSV, hours, clusterSize):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
     :param outfile: the file to write the produced chart out to
     :return:
     """
+    clusterName = outJobsCSV.split(".")[2]
     # Print some basic information on the operating parameters
     print("Input file:\t" + outJobsCSV)
     print("Hours:\t" + str(hours))
@@ -104,7 +101,8 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # TODO Use iPython for interactivity??? Ask steve first.
     # Plot the DF
-    if clusterName != "Chicoma" and clusterName != "Rocinante":
+    # TODO I should probably consider doing something about scaling w/ cluster size. FigSize etc
+    if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
