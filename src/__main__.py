@@ -104,7 +104,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterName, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # TODO Use iPython for interactivity??? Ask steve first.
     # Plot the DF
-    if clusterName != "Chicoma":
+    if clusterName != "Chicoma" and clusterName != "Rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for Cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
