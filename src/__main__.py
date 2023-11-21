@@ -99,17 +99,12 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # TODO Use iPython for interactivity??? Ask steve first.
     # Plot the DF
-    # TODO I should probably consider doing something about scaling w/ cluster size. FigSize etc
-    # matplotlib.pyplot.figure(figsize=[6.4, 10])
-    # matplotlib.pyplot.subplots(figsize=(6, 10))
-    plot_dimensions = (10,16)
+    plot_dimensions = setDimensions(nodeCount=clusterSize)
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
     # Save the figure out to a name based on the end time
-    # matplotlib.pyplot.show()
-    # matplotlib.pyplot.figure.set_size_inches((6.4,10))
     matplotlib.pyplot.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
@@ -145,6 +140,19 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
         else:
             return datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
 
+
+def setDimensions(nodeCount=0):
+    if nodeCount <= 32:
+        return(12,4.8)
+    elif nodeCount > 32 and nodeCount <= 600:
+        #TODO Smallscalar
+        return(12, 10)
+    elif nodeCount > 600 and nodeCount <= 1500:
+        #TODO Medscalar
+        return(12,18)
+    elif nodeCount > 1500:
+        #TODO Largescalar
+        return(12,22)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
