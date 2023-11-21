@@ -142,15 +142,18 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
 
 
 def setDimensions(nodeCount=0):
-    if nodeCount <= 32:
-        return(12,4.8)
-    elif nodeCount > 32 and nodeCount <= 600:
+    threshold_a = 32
+    threshold_b = 600
+    threshold_c = 1500
+    if nodeCount <= threshold_a:
+        return(12,6)
+    elif nodeCount > threshold_a and nodeCount <= threshold_b:
         #TODO Smallscalar
         return(12, 10)
-    elif nodeCount > 600 and nodeCount <= 1500:
+    elif nodeCount > threshold_b and nodeCount <= threshold_c:
         #TODO Medscalar
         return(12,18)
-    elif nodeCount > 1500:
+    elif nodeCount > threshold_c:
         #TODO Largescalar
         return(12,22)
 
