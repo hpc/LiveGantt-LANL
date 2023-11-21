@@ -42,9 +42,9 @@ def main(argv):
             count = int(arg)
 
     # Debug options below
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    # timeframe = 36
-    # count = 368
+    inputpath = "/home/spokes/repos/livegantt/sacct.out.snow.start=2023-10-01T0000.no-identifiers.txt"
+    timeframe = 36
+    count = 368
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count)
@@ -100,12 +100,16 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     # TODO Use iPython for interactivity??? Ask steve first.
     # Plot the DF
     # TODO I should probably consider doing something about scaling w/ cluster size. FigSize etc
+    # matplotlib.pyplot.figure(figsize=[6.4, 10])
+    # matplotlib.pyplot.subplots(figsize=(6, 10))
+    plot_dimensions = (10,16)
     if clusterName != "chicoma" and clusterName != "rocinante":
-        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
+        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
     else:
-        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'))
+        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
     # Save the figure out to a name based on the end time
     # matplotlib.pyplot.show()
+    # matplotlib.pyplot.figure.set_size_inches((6.4,10))
     matplotlib.pyplot.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
