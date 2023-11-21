@@ -2,7 +2,7 @@ import getopt
 import sys
 import datetime
 import batvis.utils
-import matplotlib
+import matplotlib.pyplot as plt
 import pandas
 import sanitization
 
@@ -11,7 +11,7 @@ from evalys.visu.gantt import plot_gantt_df
 from procset import ProcInt
 
 # Set the font size to prevent overlap of datestamps
-matplotlib.pyplot.rcParams.update({'font.size': 6})
+plt.rcParams.update({'font.size': 6})
 
 
 def main(argv):
@@ -97,20 +97,18 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
-    # TODO Use iPython for interactivity??? Ask steve first.
     # Plot the DF
-    plot_dimensions = setDimensions(nodeCount=clusterSize)
     if clusterName != "chicoma" and clusterName != "rocinante":
-        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
+        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize))
     else:
-        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=plot_dimensions)
+        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize))
     # Save the figure out to a name based on the end time
-    matplotlib.pyplot.savefig(
+    plt.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
     )
     # Close the figure
-    matplotlib.pyplot.close()
+    plt.close()
 
 
 
@@ -126,7 +124,7 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
     with open(outJobsCSV) as f:
         last_line = f.readlines()[index].split(
             ",")  # This could be done by seeking backwards from the end of the file as a binary, but for now this
-        # seems to take under 10 milliseconds so I don't care about that level of optimization yet
+        # seems to take under 10 milliseconds, so I don't care about that level of optimization yet
 
         # If the last job hasn't ended yet
         if last_line[endColIndex] == "Unknown":
@@ -142,11 +140,11 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
 
 
 def setDimensions(nodeCount=0):
-    threshold_a = 32
+    threshold_a = 48
     threshold_b = 600
     threshold_c = 1500
     if nodeCount <= threshold_a:
-        return(12,6)
+        return(12,8)
     elif nodeCount > threshold_a and nodeCount <= threshold_b:
         #TODO Smallscalar
         return(12, 10)

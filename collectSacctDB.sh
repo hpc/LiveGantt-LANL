@@ -14,7 +14,6 @@ time sacct --format=${FIELDS} ${ARGS} ${START} --delimiter=/ > ${OUT}
 
 #chmod 0444 slurm_version  ${OUT}
 
-# TODO I've gotta do that
 sed 's/,/|/g' ${OUT} > out.txt
 sed 's|/|,|g' out.txt > ${OUT}
 

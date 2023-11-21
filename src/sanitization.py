@@ -58,16 +58,14 @@ def sanitizeFile(inputfile):
     df = pd.read_csv(inputfile)
     df.head()
 
-    # TODO I don't want to overfilter this. I can eventually see which ones of these actually make sense for live data as opposed to sim data.
-
     # Jobs that have not ended yet, make them end now. This means that the chart will show jobs that are currently running, in addition to jobs that have finished.
     df[end] = df[end].replace('Unknown', datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
 
     # Remove jobs that were cancelled
     df[endState] = df[endState].replace('^CANCELLED by \d+', 'CANCELLED', regex=True)
     # Remove jobs that have duplicate job IDs
-    # sanitizing_df = df.drop_duplicates(subset=[jobId], keep="last") # TODO Unstub?
-    sanitizing_df = df  # TODO Unstub
+    # sanitizing_df = df.drop_duplicates(subset=[jobId], keep="last") # TODO Do I need this? Unsure as of now.
+    sanitizing_df = df
     # Remove jobs that requested 0 nodes
     sanitizing_df = sanitizing_df.loc[sanitizing_df[reqNodes] != 0]
     # Remove jobs that have a wallclocklimit of 0
@@ -115,7 +113,7 @@ def sanitizeFile(inputfile):
     # Convert times into the preferred time format
     columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
     # Loop through the specified columns and convert values to datetime objects
-    for col in columns_to_convert:  # TODO I could do __converters instead on pd.read_csv
+    for col in columns_to_convert:  # TODO I could do __converters instead on pd.read_csv but there's not a good reason to
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
     # Strip node titles from the allocated_resources space. This will need to be updated for every cluster it is run
