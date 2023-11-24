@@ -113,7 +113,7 @@ def sanitizeFile(inputfile):
     # Convert times into the preferred time format
     columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
     # Loop through the specified columns and convert values to datetime objects
-    for col in columns_to_convert:  # TODO I could do __converters instead on pd.read_csv but there's not a good reason to
+    for col in columns_to_convert:  # TODO I could do __converters instead on evalys.read_csv but there's not a good reason to
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
 
     # Strip node titles from the allocated_resources space. This will need to be updated for every cluster it is run

@@ -13,7 +13,6 @@ from procset import ProcInt
 # Set the font size to prevent overlap of datestamps
 plt.rcParams.update({'font.size': 6})
 
-
 def main(argv):
     inputpath = ""
     timeframe = 0
@@ -98,6 +97,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
+    matchlist = ["chicoma", "rocinante"]
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize))
     else:
