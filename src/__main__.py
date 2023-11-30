@@ -106,7 +106,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     if coloration == "project" and project_count is None:
         print("Must provide num_projects if coloring by project!")
         sys.exit(2)
-        
+
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
