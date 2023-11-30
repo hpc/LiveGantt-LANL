@@ -8,7 +8,7 @@ def twenty22():
     Defines a series of variables linked to the column names of the format being used
     :return:
     """
-    global endState, wallclockLimit, reqNodes, submit, start, end, jobId, reservation
+    global endState, wallclockLimit, reqNodes, submit, start, end, jobId, reservation, account
     endState = "State"
     wallclockLimit = "Timelimit"
     reqNodes = "NNodes"
@@ -17,6 +17,8 @@ def twenty22():
     end = "End"
     jobId = "JobID"
     reservation = "Reservation"
+    submitline = "SubmitLine"
+    account = "Account"
 
 
 def strip_leading_zeroes(s):
@@ -107,7 +109,8 @@ def sanitizeFile(inputfile):
         'Start': 'starting_time',
         'End': 'finish_time',
         'NodeList': 'allocated_resources',
-        'Reservation': 'purpose'
+        'Reservation': 'purpose',
+        'Account' : 'account'
     })
 
     # Convert times into the preferred time format
@@ -136,7 +139,7 @@ def sanitizeFile(inputfile):
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
 
     # TODO Convert project names into something that I can use - numbers? Hashes? And calculate num_projects
-
+    formatted_df['account'] = pd.factorize(formatted_df['account'])[0]
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
         'jobID',
@@ -153,6 +156,7 @@ def sanitizeFile(inputfile):
         'stretch',
         'allocated_resources',
         'purpose',
+        'account',
     ]]
 
     return formatted_df

@@ -43,9 +43,9 @@ def main(argv):
             count = int(arg)
 
     # Debug options below
-    inputpath = "/home/spokes/repos/livegantt/sacct.out.snow.start=2023-10-01T0000.no-identifiers.txt"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
     timeframe = 36
-    count = 368
+    count = 1792
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count)
@@ -70,6 +70,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     print("Size of cluster:\t" + str(clusterSize))
 
     # Open the output file and figure out what columns hold 'Start' and 'End' time values
+    # TODO Fix the Chicoma invalid continuation byte issue
     with open(outJobsCSV) as f:
         header = f.readlines()[0].split(",")
         indices = []
@@ -100,9 +101,9 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     matchlist = ["chicoma", "rocinante"]
-    coloration = "default"  # Options are "default", "project", and "dependency"
+    coloration = "project"  # Options are "default", "project", and "dependency"
     # TODO If coloration = project, must provide num_projects
-    project_count = None  # TODO Parse this
+    project_count = totalDf["account"].unique().size  # TODO Parse this
     if coloration == "project" and project_count is None:
         print("Must provide num_projects if coloring by project!")
         sys.exit(2)
@@ -118,6 +119,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
                       colorationMethod=coloration, num_projects=project_count)
     # Save the figure out to a name based on the end time
+    # TODO This is not exporting at full res
     plt.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
         dpi=300,
@@ -167,7 +169,7 @@ def setDimensions(nodeCount=0):
         return (12, 18)
     elif nodeCount > threshold_c:
         # TODO Largescalar
-        return (12, 22)
+        return (12, 35)
 
 
 if __name__ == '__main__':
