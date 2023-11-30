@@ -135,6 +135,8 @@ def sanitizeFile(inputfile):
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
 
+    # TODO Convert project names into something that I can use - numbers? Hashes? And calculate num_projects
+
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
         'jobID',

@@ -13,6 +13,7 @@ from procset import ProcInt
 # Set the font size to prevent overlap of datestamps
 plt.rcParams.update({'font.size': 6})
 
+
 def main(argv):
     inputpath = ""
     timeframe = 0
@@ -30,7 +31,8 @@ def main(argv):
         )
     # If options provided are incorrect, fail out
     except getopt.GetoptError:
-        print("Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -c <Node count>")
+        print(
+            "Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -c <Node count>")
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-i":
@@ -98,10 +100,23 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     matchlist = ["chicoma", "rocinante"]
+    coloration = "default"  # Options are "default", "project", and "dependency"
+    # TODO If coloration = project, must provide num_projects
+    project_count = None  # TODO Parse this
+    if coloration == "project" and project_count is None:
+        print("Must provide num_projects if coloring by project!")
+        sys.exit(2)
+        
     if clusterName != "chicoma" and clusterName != "rocinante":
-        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize))
+        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
+                      title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
+                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
+                      colorationMethod=coloration, num_projects=project_count)
     else:
-        plot_gantt_df(totalDf, ProcInt(1000, clusterSize+1000 - 1), chartStartTime, chartEndTime, title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime('%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize))
+        plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
+                      title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
+                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
+                      colorationMethod=coloration, num_projects=project_count)
     # Save the figure out to a name based on the end time
     plt.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
@@ -109,7 +124,6 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     )
     # Close the figure
     plt.close()
-
 
 
 def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
@@ -144,16 +158,17 @@ def setDimensions(nodeCount=0):
     threshold_b = 600
     threshold_c = 1500
     if nodeCount <= threshold_a:
-        return(12,8)
+        return (12, 8)
     elif nodeCount > threshold_a and nodeCount <= threshold_b:
-        #TODO Smallscalar
-        return(12, 10)
+        # TODO Smallscalar
+        return (12, 10)
     elif nodeCount > threshold_b and nodeCount <= threshold_c:
-        #TODO Medscalar
-        return(12,18)
+        # TODO Medscalar
+        return (12, 18)
     elif nodeCount > threshold_c:
-        #TODO Largescalar
-        return(12,22)
+        # TODO Largescalar
+        return (12, 22)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
