@@ -45,14 +45,14 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
-    timeframe = 36
-    count = 1792
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # count = 1792
 
     # Snow
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    # timeframe = 36
-    # count = 368
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    timeframe = 36
+    count = 368
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count)
@@ -107,9 +107,8 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
-    matchlist = ["chicoma", "rocinante"]
-    coloration = "project"  # Options are "default", "project", and "dependency"
-    # TODO If coloration = project, must provide num_projects
+    # matchlist = ["chicoma", "rocinante"]
+    coloration = "dependency"  # Options are "default", "project", and "dependency"
     project_count = totalDf["account"].unique().size  # TODO Parse this
     if coloration == "project" and project_count is None:
         print("Must provide num_projects if coloring by project!")
