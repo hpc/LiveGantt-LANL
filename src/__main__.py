@@ -45,14 +45,19 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
-    # timeframe = 36
-    # count = 1792
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
+    timeframe = 36
+    count = 1792
 
     # Snow
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    timeframe = 36
-    count = 368
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 72
+    # count = 368
+
+    # Fog
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 142
+    # count=32
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count)

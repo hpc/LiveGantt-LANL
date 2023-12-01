@@ -14,8 +14,9 @@ time sacct --format=${FIELDS} ${ARGS} ${START} --delimiter={ > ${OUT}
 
 #chmod 0444 slurm_version  ${OUT}
 
-# TODO I've gotta do that
-sed 's/,/|/g' ${OUT} > out.txt
-sed 's|{|,|g' out.txt > ${OUT}
+# TODO These can be the same, right?
+sed 's/,/|/g' ${OUT} > ${OUT}
+sed 's|{|,|g' ${OUT} > ${OUT}
+iconv -c -f us-ascii -t UTF-8//TRANSLIT ${OUT} > ${OUT}
 
 #python3 src/__main__.py -i${OUT} -t36 -n${CLUSTERNAME} -c368

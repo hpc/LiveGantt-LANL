@@ -152,20 +152,6 @@ def sanitizeFile(inputfile):
     # Drop the original 'submitline' column if needed
     formatted_df.drop(columns=['submitline'], inplace=True)
 
-
-
-
-
-    # def find_chain_head(dependency):
-    #     if pd.notna(dependency):
-    #         # If a dependency exists
-    #         dependency = formatted_df.loc[formatted_df['jobID'] == dependency]
-    #         return find_chain_head(dependency)
-    #     else:
-    #         return formatted_df['jobID']
-    #
-    # formatted_df['dependency_chain_head'] = formatted_df['dependency'].apply(find_chain_head)
-
     # Convert the 'Dependency' column to string to handle NaN values
     formatted_df['dependency'] = formatted_df['dependency'].astype(str)
     formatted_df['dependency'] = formatted_df['dependency'].apply(
@@ -184,15 +170,11 @@ def sanitizeFile(inputfile):
             else:
                 return find_chain_head(dependency, next_dependency.values[0])
 
-    # # Create the 'dependency_chain_head' column
-    # formatted_df['dependency_chain_head'] = formatted_df.apply(
-    #     lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
-
     # Create the 'dependency_chain_head' column
     formatted_df['dependency_chain_head'] = formatted_df.apply(
         lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
 
-    # formatted_df['dependency_chain_no'] = formatted_df['dependency']
+    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
 
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
@@ -210,6 +192,7 @@ def sanitizeFile(inputfile):
         'stretch',
         'allocated_resources',
         'dependency',
+        'dependency_chain_head',
         'purpose',
         'account',
     ]]
