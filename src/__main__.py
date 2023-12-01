@@ -43,9 +43,16 @@ def main(argv):
             count = int(arg)
 
     # Debug options below
+
+    # Chicoma
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
     timeframe = 36
     count = 1792
+
+    # Snow
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # count = 368
 
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count)
