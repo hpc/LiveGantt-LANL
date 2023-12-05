@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import datetime
 from procset import ProcSet
@@ -50,18 +52,20 @@ def string_to_procset(s):
 
 
 
-def sanitizeFile(inputfile):
+def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking in cases where I absolutely need to.
     """
     Sanitize the data provided from sacct.out in order to ensure that jobs that didn't exist or didn't fit expected bounds don't interfere with chart production.
     :param inputfile: The file to convert to CSV and sanitize job data from
     :return: The sanitized dataframe
     """
-
+    print("\nSanitizing inputfile!\n")
     twenty22()
 
+    print("Reading csv into DataFrame")
     df = pd.read_csv(inputfile)
     df.head()
 
+    print("Filtering Nonexistant Jobs")
     # Jobs that have not ended yet, make them end now. This means that the chart will show jobs that are currently running, in addition to jobs that have finished.
     df[end] = df[end].replace('Unknown', datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
 
@@ -89,6 +93,7 @@ def sanitizeFile(inputfile):
     # Set the reservation field properly
     # TODO I can specify!!! For now it'll just be DAT,DST, and PreventMaint but in the future I can show it different for each!
 
+    print("Formatting Reservation Strings")
     # Define the replacement rules using regular expressions
     replacement_rules = {
         'DST': 'reservation',
@@ -147,6 +152,25 @@ def sanitizeFile(inputfile):
     formatted_df['username'] = formatted_df["user"]
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
 
+
+    # Calculate the 30% most frequent usernames
+    top_usernames = formatted_df['username'].value_counts().nlargest(8).index
+
+    # Create a mapping of usernames to unique user IDs
+    username_to_user_id = {username: i for i, username in enumerate(top_usernames, start=1)}
+
+    # Apply the mapping to create a new 'user_id' column
+    formatted_df['user_id'] = formatted_df['username'].map(username_to_user_id).fillna(0)
+
+    # If there are any usernames not in the top 30%, set their 'user_id' to '0'
+    formatted_df.loc[~formatted_df['username'].isin(top_usernames), 'user_id'] = 0
+
+    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
+
+
+
+
+
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
     # If you want to convert the 'Dependency' column to numeric type
@@ -174,10 +198,14 @@ def sanitizeFile(inputfile):
                 return find_chain_head(dependency, next_dependency.values[0])
 
     # Create the 'dependency_chain_head' column
+    start_time_task = time.time()
     formatted_df['dependency_chain_head'] = formatted_df.apply(
         lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
 
     formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    end_time_task = time.time()
+    duration_task = end_time_task-start_time_task
+    print("Spent "+str(duration_task)+ " seconds seeking dependency chain.")
 
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
@@ -200,6 +228,7 @@ def sanitizeFile(inputfile):
         'account',
         'user',
         'username',
+        'user_id',
     ]]
 
     return formatted_df

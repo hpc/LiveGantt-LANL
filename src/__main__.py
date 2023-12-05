@@ -76,11 +76,12 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     """
     clusterName = outJobsCSV.split(".")[2]
     # Print some basic information on the operating parameters
+    print("\nLiveGantt Initialized!\n")
     print("Input file:\t" + outJobsCSV)
     print("Hours:\t" + str(hours))
     print("Cluster name:\t" + clusterName)
     print("Size of cluster:\t" + str(clusterSize))
-
+    print("\nDetermining chart window...")
     # Open the output file and figure out what columns hold 'Start' and 'End' time values
     # TODO Fix the Chicoma invalid continuation byte issue
     with open(outJobsCSV) as f:
@@ -113,26 +114,30 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     # matchlist = ["chicoma", "rocinante"]
-    coloration = "user"  # Options are "default", "project", "user", and "dependency"
+    coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", and "dependency"
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
+    user_top_20_count = totalDf["user_id"].unique().size
     if coloration == "project" and project_count is None:
         print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
         sys.exit(2)
     elif coloration == "user" and user_count is None:
         print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
         sys.exit(2)
+    elif coloration == "user_top_20" and user_top_20_count is None:
+        print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
+        sys.exit(2)
 
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8)
     # Save the figure out to a name based on the end time
     plt.savefig(
         "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') +"_"+ coloration +".png",
