@@ -45,14 +45,14 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
-    timeframe = 36
-    count = 1792
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # count = 1792
 
     # Snow
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    # timeframe = 72
-    # count = 368
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    timeframe = 72
+    count = 368
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -113,26 +113,29 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     # matchlist = ["chicoma", "rocinante"]
-    coloration = "dependency"  # Options are "default", "project", and "dependency"
-    project_count = totalDf["account"].unique().size  # TODO Parse this
+    coloration = "user"  # Options are "default", "project", "user", and "dependency"
+    project_count = totalDf["account"].unique().size
+    user_count = totalDf["user"].unique().max()
     if coloration == "project" and project_count is None:
-        print("Must provide num_projects if coloring by project!")
+        print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
+        sys.exit(2)
+    elif coloration == "user" and user_count is None:
+        print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
         sys.exit(2)
 
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count)
     # Save the figure out to a name based on the end time
-    # TODO This is not exporting at full res
     plt.savefig(
-        "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') + ".png",
+        "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') +"_"+ coloration +".png",
         dpi=300,
     )
     # Close the figure

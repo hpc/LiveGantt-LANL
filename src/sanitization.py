@@ -8,7 +8,7 @@ def twenty22():
     Defines a series of variables linked to the column names of the format being used
     :return:
     """
-    global endState, wallclockLimit, reqNodes, submit, start, end, jobId, reservation, submitline, account
+    global endState, wallclockLimit, reqNodes, submit, start, end, jobId, reservation, submitline, account, user
     endState = "State"
     wallclockLimit = "Timelimit"
     reqNodes = "NNodes"
@@ -19,6 +19,7 @@ def twenty22():
     reservation = "Reservation"
     submitline = "SubmitLine"
     account = "Account"
+    user = "User"
 
 
 def strip_leading_zeroes(s):
@@ -56,7 +57,6 @@ def sanitizeFile(inputfile):
     :return: The sanitized dataframe
     """
 
-    # Using 2022 fog data
     twenty22()
 
     df = pd.read_csv(inputfile)
@@ -114,7 +114,8 @@ def sanitizeFile(inputfile):
         'NodeList': 'allocated_resources',
         'Reservation': 'purpose',
         'SubmitLine': 'submitline',
-        'Account' : 'account'
+        'Account': 'account',
+        'User': 'user'
     })
 
     # Convert times into the preferred time format
@@ -143,6 +144,8 @@ def sanitizeFile(inputfile):
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
 
     formatted_df['account'] = pd.factorize(formatted_df['account'])[0]
+    formatted_df['username'] = formatted_df["user"]
+    formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -195,6 +198,8 @@ def sanitizeFile(inputfile):
         'dependency_chain_head',
         'purpose',
         'account',
+        'user',
+        'username',
     ]]
 
     return formatted_df
