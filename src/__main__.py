@@ -21,6 +21,7 @@ plt.rcParams.update({'font.size': 6})
 
 
 def main(argv):
+    # TODO UPDATE CLI OPTIONS
     inputpath = ""
     timeframe = 0
     count = 0
@@ -55,26 +56,31 @@ def main(argv):
     timeframe = 120
     count = 1792
     cache = True
+    clear_cache = False
 
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
     # timeframe = 72
     # count = 368
+    # cache = True
+    # clear_cache = False
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
     # timeframe = 142
     # count=32
+    # cache = True
+    # clear_cache = False
 
     # Produce the chart
-    ganttLastNHours(inputpath, timeframe, count, cache)
+    ganttLastNHours(inputpath, timeframe, count, cache, clear_cache)
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
 
-def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False):
+def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -113,9 +119,12 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False):
     print("End of chart window:\t" + str(chartEndTime))
     # Sanitize the data from the inputfile
 
+    cache_name = outJobsCSV + "_sanitized_cache.csv"
+    if clear_cache:
+        os.remove(cache_name)
+
     if cache is True:
         input_file_hash = calculate_sha256(outJobsCSV)
-        cache_name = outJobsCSV+"_sanitized_cache.csv"
         if os.path.isfile(cache_name):
             print("Cache exists! Hashing ...")
             cache_hash = calculate_sha256(cache_name.removesuffix("_sanitized_cache.csv"))
