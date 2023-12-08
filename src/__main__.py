@@ -52,18 +52,23 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 72
-    count = 1792
-    cache = True
-    clear_cache = False
-
-    # Snow
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
     # timeframe = 72
-    # count = 368
+    # count = 1792
     # cache = True
     # clear_cache = False
+    # coloration = "dependency"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+
+    # # TODO Implement width for high-res wide charts
+
+    # Snow
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
+    timeframe = 36
+    count = 368
+    cache = True
+    clear_cache = False
+    coloration = "dependency"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -71,16 +76,18 @@ def main(argv):
     # count=32
     # cache = True
     # clear_cache = False
+    # coloration = "project"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+
 
     # Produce the chart
-    ganttLastNHours(inputpath, timeframe, count, cache, clear_cache)
+    ganttLastNHours(inputpath, timeframe, count, cache, clear_cache, coloration)
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
 
-def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False):
+def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False, coloration="default"):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -135,7 +142,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
                 df = sanitization.cache_column_typing(df)
                 end_time_task = time.time()
                 duration_task = end_time_task - start_time_task
-                print("Cache loaded in "+str(duration_task)+"s")
+                print("Cache loaded in " + str(duration_task) + "s")
 
             else:
                 print("Cache invalid!")
@@ -155,8 +162,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     # matchlist = ["chicoma", "rocinante"]
-    coloration = "project"  # Options are "default", "project", "user", "user_top_20", and "dependency"
-    # TODO Dependency should have labels
+    # TODO Dependency isn't easy to read - use a more visible highlight
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     user_top_20_count = totalDf["user_id"].unique().size
@@ -169,27 +175,27 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     elif coloration == "user_top_20" and user_top_20_count is None:
         print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
         sys.exit(2)
-    # TODO Parse each resv. into a resvSet and pass into plot_gantt_df
-    resvSet = parse_reservation_set(totalDf)
-
-
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8, resvSet=resvSet)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
+                      resvSet=parse_reservation_set(totalDf))
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8, resvSet=resvSet)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
+                      resvSet=parse_reservation_set(totalDf))
     # Save the figure out to a name based on the end time
     plt.savefig(
-        "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') +"_"+ coloration +".png",
+        "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
+            '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
         dpi=300,
     )
     # Close the figure
     plt.close()
+
 
 def parse_reservation_set(df):
     reservation_set = []
@@ -197,6 +203,7 @@ def parse_reservation_set(df):
         if row["purpose"] == "reservation":
             reservation_set.append(row)
     return reservation_set
+
 
 def calculate_sha256(filename):
     sha256_hash = hashlib.sha256()
