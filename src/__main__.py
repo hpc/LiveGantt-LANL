@@ -53,7 +53,7 @@ def main(argv):
 
     # Chicoma
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 120
+    timeframe = 72
     count = 1792
     cache = True
     clear_cache = False
@@ -169,24 +169,34 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     elif coloration == "user_top_20" and user_top_20_count is None:
         print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
         sys.exit(2)
-    # TODO I need to populate the resv parameters
+    # TODO Parse each resv. into a resvSet and pass into plot_gantt_df
+    resvSet = parse_reservation_set(totalDf)
+
+
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8, resvSet=resvSet)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8)
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users = 8, resvSet=resvSet)
     # Save the figure out to a name based on the end time
     plt.savefig(
-        "./" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') +"_"+ coloration +".png",
+        "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime('%Y-%m-%dT%H:%M:%S') +"_"+ coloration +".png",
         dpi=300,
     )
     # Close the figure
     plt.close()
+
+def parse_reservation_set(df):
+    reservation_set = []
+    for index, row in df.iterrows():
+        if row["purpose"] == "reservation":
+            reservation_set.append(row)
+    return reservation_set
 
 def calculate_sha256(filename):
     sha256_hash = hashlib.sha256()
