@@ -1,9 +1,15 @@
-import getopt
-import sys
 import datetime
+import getopt
+import hashlib
+import os
+import sys
+import time
+
 import batvis.utils
 import matplotlib.pyplot as plt
 import pandas
+import pandas as pd
+
 import sanitization
 
 from evalys.utils import cut_workload
@@ -45,14 +51,15 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-10-01T00:00.no-identifiers.txt"
-    # timeframe = 36
-    # count = 1792
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    timeframe = 120
+    count = 1792
+    cache = True
 
     # Snow
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
-    timeframe = 72
-    count = 368
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-10-01T00:00.no-identifiers.txt"
+    # timeframe = 72
+    # count = 368
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -60,14 +67,14 @@ def main(argv):
     # count=32
 
     # Produce the chart
-    ganttLastNHours(inputpath, timeframe, count)
+    ganttLastNHours(inputpath, timeframe, count, cache)
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
 
-def ganttLastNHours(outJobsCSV, hours, clusterSize):
+def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -83,7 +90,6 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     print("Size of cluster:\t" + str(clusterSize))
     print("\nDetermining chart window...")
     # Open the output file and figure out what columns hold 'Start' and 'End' time values
-    # TODO Fix the Chicoma invalid continuation byte issue
     with open(outJobsCSV) as f:
         header = f.readlines()[0].split(",")
         indices = []
@@ -106,7 +112,33 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     print("Start of chart window:\t" + str(chartStartTime))
     print("End of chart window:\t" + str(chartEndTime))
     # Sanitize the data from the inputfile
-    df = sanitization.sanitizeFile(outJobsCSV)
+
+    if cache is True:
+        input_file_hash = calculate_sha256(outJobsCSV)
+        cache_name = outJobsCSV+"_sanitized_cache.csv"
+        if os.path.isfile(cache_name):
+            print("Cache exists! Hashing ...")
+            cache_hash = calculate_sha256(cache_name.removesuffix("_sanitized_cache.csv"))
+            if input_file_hash == cache_hash:
+                print("Cache valid! Loading df from cache...")
+                start_time_task = time.time()
+                df = pd.read_csv(cache_name)
+                df = sanitization.cache_column_typing(df)
+                end_time_task = time.time()
+                duration_task = end_time_task - start_time_task
+                print("Cache loaded in "+str(duration_task)+"s")
+
+            else:
+                print("Cache invalid!")
+                df = sanitization.sanitizeFile(outJobsCSV)
+                df.to_csv(cache_name)
+        else:
+            df = sanitization.sanitizeFile(outJobsCSV)
+            df.to_csv(cache_name)
+
+    else:
+        df = sanitization.sanitizeFile(outJobsCSV)
+
     maxJobLen = batvis.utils.getMaxJobLen(df)
     # Cut the jobset to the size of the window
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
@@ -114,7 +146,8 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     # Plot the DF
     # matchlist = ["chicoma", "rocinante"]
-    coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+    coloration = "project"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+    # TODO Dependency should have labels
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     user_top_20_count = totalDf["user_id"].unique().size
@@ -127,7 +160,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     elif coloration == "user_top_20" and user_top_20_count is None:
         print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
         sys.exit(2)
-
+    # TODO I need to populate the resv parameters
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
@@ -145,6 +178,11 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize):
     )
     # Close the figure
     plt.close()
+
+def calculate_sha256(filename):
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(filename.encode('utf-8'))
+    return sha256_hash.hexdigest()
 
 
 def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):

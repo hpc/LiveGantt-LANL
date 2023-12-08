@@ -23,6 +23,24 @@ def twenty22():
     account = "Account"
     user = "User"
 
+def cache_column_typing(formatted_df):
+    # Convert times into the preferred time format
+    columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
+    # Loop through the specified columns and convert values to datetime objects
+    for col in columns_to_convert:  # TODO I could do __converters instead on evalys.read_csv but there's not a good reason to
+        formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
+    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
+
+    formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
+    formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
+    formatted_df['requested_time'] = formatted_df['execution_time']
+    formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
+    formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
+
+    return formatted_df
+
 
 def strip_leading_zeroes(s):
     """
