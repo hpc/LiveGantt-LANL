@@ -64,22 +64,22 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    # timeframe = 72
-    # count = 1792
-    # cache = True
-    # clear_cache = False
-    # coloration = "dependency"  # Options are "default", "project", "user", "user_top_20", and "dependency"
-
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    timeframe = 36
+    count = 1792
+    cache = True
+    clear_cache = False
+    coloration = "sched"  # Options are "default", "project", "user", "user_top_20", "sched", and "dependency"
+    # TODO user_top_20 doesnt work afaik
     # # TODO Implement width for high-res wide charts
 
     # Snow
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 36
-    count = 368
-    cache = True
-    clear_cache = False
-    coloration = "dependency"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
+    # timeframe = 36
+    # count = 368
+    # cache = False
+    # clear_cache = False
+    # coloration = "sched"  # Options are "default", "project", "user", "user_top_20", and "dependency"
 
 
     # Fog
@@ -160,9 +160,13 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
                 print("Cache invalid!")
                 df = sanitization.sanitizeFile(outJobsCSV)
                 df.to_csv(cache_name)
+                print("Wrote new cache!")
+
         else:
             df = sanitization.sanitizeFile(outJobsCSV)
             df.to_csv(cache_name)
+            print("Wrote new cache!")
+
 
     else:
         df = sanitization.sanitizeFile(outJobsCSV)
@@ -190,13 +194,13 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     if clusterName != "chicoma" and clusterName != "rocinante":
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
+                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
                       colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
                       resvSet=parse_reservation_set(totalDf))
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize),
+                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
                       colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
                       resvSet=parse_reservation_set(totalDf))
     # Save the figure out to a name based on the end time
@@ -250,21 +254,22 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
             return datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
 
 
-def setDimensions(nodeCount=0):
+def setDimensions(nodeCount=0, hours=24):
     threshold_a = 48
     threshold_b = 600
     threshold_c = 1500
+
     if nodeCount <= threshold_a:
-        return (12, 8)
+        return (hours*0.5, 12)
     elif nodeCount > threshold_a and nodeCount <= threshold_b:
         # TODO Smallscalar
-        return (12, 10)
+        return (hours*0.5, 12)
     elif nodeCount > threshold_b and nodeCount <= threshold_c:
         # TODO Medscalar
-        return (12, 18)
+        return (hours*0.5, 18)
     elif nodeCount > threshold_c:
         # TODO Largescalar
-        return (12, 35)
+        return (hours*0.5, 35)
 
 
 if __name__ == '__main__':

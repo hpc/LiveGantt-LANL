@@ -23,6 +23,7 @@ def twenty22():
     account = "Account"
     user = "User"
 
+
 def cache_column_typing(formatted_df):
     # Convert times into the preferred time format
     columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
@@ -68,9 +69,7 @@ def string_to_procset(s):
     return ProcSet.from_str(s)
 
 
-
-
-def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking in cases where I absolutely need to.
+def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking in cases where I absolutely need to.
     """
     Sanitize the data provided from sacct.out in order to ensure that jobs that didn't exist or didn't fit expected bounds don't interfere with chart production.
     :param inputfile: The file to convert to CSV and sanitize job data from
@@ -138,7 +137,8 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
         'Reservation': 'purpose',
         'SubmitLine': 'submitline',
         'Account': 'account',
-        'User': 'user'
+        'User': 'user',
+        'Flags' : 'flags',
     })
 
     # Convert times into the preferred time format
@@ -170,7 +170,6 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
     formatted_df['username'] = formatted_df["user"]
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
 
-
     # Calculate the 30% most frequent usernames
     top_usernames = formatted_df['username'].value_counts().nlargest(8).index
 
@@ -185,10 +184,6 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
 
     formatted_df['user_id'] = formatted_df['user_id'].astype(int)
 
-
-
-
-
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
     # If you want to convert the 'Dependency' column to numeric type
@@ -202,6 +197,7 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
     formatted_df['dependency'] = formatted_df['dependency'].apply(
         lambda x: x.split(".")[0]
     )
+
     def find_chain_head(job_id, dependency):
         # If there is no dependency, return the current JobID
         if pd.isna(dependency) or dependency == 'nan':
@@ -222,8 +218,9 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
 
     formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
     end_time_task = time.time()
-    duration_task = end_time_task-start_time_task
-    print("Spent "+str(duration_task)+ " seconds seeking dependency chain.")
+    duration_task = end_time_task - start_time_task
+    print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
+    formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 
     # Reorder the columns to match the specified order
     formatted_df = formatted_df[[
@@ -247,6 +244,7 @@ def sanitizeFile(inputfile): # TODO I should only run dependency chain seeking i
         'user',
         'username',
         'user_id',
+        'flags',
     ]]
 
     return formatted_df
