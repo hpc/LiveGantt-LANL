@@ -21,19 +21,25 @@ plt.rcParams.update({'font.size': 6})
 
 
 def main(argv):
-    # TODO UPDATE CLI OPTIONS
     inputpath = ""
     timeframe = 0
     count = 0
+    cache = True
+    clear_cache = False
+    coloration = "default"
+
     # Parse provided arguments and set variables to their values
     try:
         opts, args = getopt.getopt(
             argv,
-            "i:t:c:",
+            "i:t:c:k:x:h",
             [
                 "ipath=",
                 "timeframe=",
                 "count=",
+                "cache=",
+                "clear_cache=",
+                "coloration=",
             ],
         )
     # If options provided are incorrect, fail out
@@ -48,6 +54,12 @@ def main(argv):
             timeframe = int(arg)
         elif opt in "-c":
             count = int(arg)
+        elif opt in "-k":
+            cache = bool(arg)
+        elif opt in "-x":
+            clear_cache = bool(arg)
+        elif opt in "-h":
+            coloration = str(arg)
 
     # Debug options below
 
