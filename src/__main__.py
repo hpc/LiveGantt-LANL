@@ -65,11 +65,11 @@ def main(argv):
 
     # Chicoma
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 36
+    timeframe = 52
     count = 1792
     cache = True
     clear_cache = False
-    coloration = "sched"  # Options are "default", "project", "user", "user_top_20", "sched", and "dependency"
+    coloration = "wait"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # TODO user_top_20 doesnt work afaik
     # # TODO Implement width for high-res wide charts
 
@@ -77,9 +77,9 @@ def main(argv):
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
     # timeframe = 36
     # count = 368
-    # cache = False
-    # clear_cache = False
-    # coloration = "sched"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+    # cache = True
+    # clear_cache = True
+    # coloration = "wait"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
 
     # Fog
@@ -88,7 +88,7 @@ def main(argv):
     # count=32
     # cache = True
     # clear_cache = False
-    # coloration = "project"  # Options are "default", "project", "user", "user_top_20", and "dependency"
+    # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
 
     # Produce the chart
@@ -140,7 +140,11 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
 
     cache_name = outJobsCSV + "_sanitized_cache.csv"
     if clear_cache:
-        os.remove(cache_name)
+        if os.path.isfile(cache_name):
+            os.remove(cache_name)
+            print("Old cache removed!")
+        else:
+            print("No cache file found!")
 
     if cache is True:
         input_file_hash = calculate_sha256(outJobsCSV)

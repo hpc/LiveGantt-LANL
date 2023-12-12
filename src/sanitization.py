@@ -133,6 +133,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'State': 'success',
         'Start': 'starting_time',
         'End': 'finish_time',
+        'Eligible': 'eligible',
         'NodeList': 'allocated_resources',
         'Reservation': 'purpose',
         'SubmitLine': 'submitline',
@@ -142,7 +143,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     })
 
     # Convert times into the preferred time format
-    columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
+    columns_to_convert = ['submission_time', 'starting_time', 'finish_time','eligible']
     # Loop through the specified columns and convert values to datetime objects
     for col in columns_to_convert:  # TODO I could do __converters instead on evalys.read_csv but there's not a good reason to
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'))
@@ -163,6 +164,13 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
+    formatted_df['eligible_wait'] = formatted_df['starting_time'] - formatted_df['eligible']
+    formatted_df['eligible_wait_seconds'] = formatted_df['eligible_wait'].dt.total_seconds()
+
+    # Normalize the column to range from 0 to 1
+    formatted_df['normalized_eligible_wait'] = 1 - (
+                formatted_df['eligible_wait_seconds'] / formatted_df['eligible_wait_seconds'].max())
+
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
 
@@ -236,6 +244,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'waiting_time',
         'turnaround_time',
         'stretch',
+        'normalized_eligible_wait',
         'allocated_resources',
         'dependency',
         'dependency_chain_head',
