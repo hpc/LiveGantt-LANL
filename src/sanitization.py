@@ -192,19 +192,23 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
 
     formatted_df['user_id'] = formatted_df['user_id'].astype(int)
 
-    formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
+    # TODO Unstub and delete
+    formatted_df['dependency_chain_head'] = formatted_df['user_id']
+    formatted_df['dependency'] = formatted_df['user_id']
 
-    # If you want to convert the 'Dependency' column to numeric type
-    formatted_df['dependency'] = pd.to_numeric(formatted_df['dependency'], errors='coerce')
-
-    # Drop the original 'submitline' column if needed
-    formatted_df.drop(columns=['submitline'], inplace=True)
-
-    # Convert the 'Dependency' column to string to handle NaN values
-    formatted_df['dependency'] = formatted_df['dependency'].astype(str)
-    formatted_df['dependency'] = formatted_df['dependency'].apply(
-        lambda x: x.split(".")[0]
-    )
+    # formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
+    #
+    # # If you want to convert the 'Dependency' column to numeric type
+    # formatted_df['dependency'] = pd.to_numeric(formatted_df['dependency'], errors='coerce')
+    #
+    # # Drop the original 'submitline' column if needed
+    # formatted_df.drop(columns=['submitline'], inplace=True)
+    #
+    # # Convert the 'Dependency' column to string to handle NaN values
+    # formatted_df['dependency'] = formatted_df['dependency'].astype(str)
+    # formatted_df['dependency'] = formatted_df['dependency'].apply(
+    #     lambda x: x.split(".")[0]
+    # )
 
     def find_chain_head(job_id, dependency):
         # If there is no dependency, return the current JobID
@@ -220,14 +224,14 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
                 return find_chain_head(dependency, next_dependency.values[0])
 
     # Create the 'dependency_chain_head' column
-    start_time_task = time.time()
-    formatted_df['dependency_chain_head'] = formatted_df.apply(
-        lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
-
-    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
-    end_time_task = time.time()
-    duration_task = end_time_task - start_time_task
-    print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
+    # start_time_task = time.time()
+    # formatted_df['dependency_chain_head'] = formatted_df.apply(
+    #     lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
+    #
+    # formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    # end_time_task = time.time()
+    # duration_task = end_time_task - start_time_task
+    # print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
     formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 
     # Reorder the columns to match the specified order
