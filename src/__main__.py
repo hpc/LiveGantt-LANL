@@ -64,12 +64,12 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 52
-    count = 1792
-    cache = True
-    clear_cache = True
-    coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    # timeframe = 52
+    # count = 1792
+    # cache = True
+    # clear_cache = True
+    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # TODO user_top_20 doesnt work afaik
     # # TODO Implement width for high-res wide charts
 
@@ -90,12 +90,12 @@ def main(argv):
     # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
     # Roci Firedrill
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
-    # timeframe = 800
-    # count = 508
-    # cache = True
-    # clear_cache = False
-    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
+    timeframe = 800
+    count = 508
+    cache = True
+    clear_cache = False
+    coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count, cache, clear_cache, coloration)
 
