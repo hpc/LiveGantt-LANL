@@ -192,23 +192,19 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
 
     formatted_df['user_id'] = formatted_df['user_id'].astype(int)
 
-    # TODO Unstub and delete
-    formatted_df['dependency_chain_head'] = formatted_df['user_id']
-    formatted_df['dependency'] = formatted_df['user_id']
+    formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
-    # formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
-    #
-    # # If you want to convert the 'Dependency' column to numeric type
-    # formatted_df['dependency'] = pd.to_numeric(formatted_df['dependency'], errors='coerce')
-    #
-    # # Drop the original 'submitline' column if needed
-    # formatted_df.drop(columns=['submitline'], inplace=True)
-    #
-    # # Convert the 'Dependency' column to string to handle NaN values
-    # formatted_df['dependency'] = formatted_df['dependency'].astype(str)
-    # formatted_df['dependency'] = formatted_df['dependency'].apply(
-    #     lambda x: x.split(".")[0]
-    # )
+    # If you want to convert the 'Dependency' column to numeric type
+    formatted_df['dependency'] = pd.to_numeric(formatted_df['dependency'], errors='coerce')
+
+    # Drop the original 'submitline' column if needed
+    formatted_df.drop(columns=['submitline'], inplace=True)
+
+    # Convert the 'Dependency' column to string to handle NaN values
+    formatted_df['dependency'] = formatted_df['dependency'].astype(str)
+    formatted_df['dependency'] = formatted_df['dependency'].apply(
+        lambda x: x.split(".")[0]
+    )
 
     def find_chain_head(job_id, dependency):
         # If there is no dependency, return the current JobID
