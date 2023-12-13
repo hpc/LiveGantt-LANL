@@ -101,6 +101,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     sanitizing_df = sanitizing_df.loc[sanitizing_df[end] != "Unknown"]
     # Remove jobs with an unknown start state
     sanitizing_df = sanitizing_df.loc[sanitizing_df[start] != "Unknown"]
+    sanitizing_df = sanitizing_df.loc[~sanitizing_df[user].isna()]
     # Remove jobs with an unknown submit state
     sanitizing_df = sanitizing_df.loc[sanitizing_df[submit] != "Unknown"]
     # Remove jobs that have a null start
@@ -128,6 +129,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df = sanitizing_df.rename(columns={
         'JobIDRaw': 'jobID',
         'JobID': 'notRawJobID',
+        'Partition': 'partition',
         'Submit': 'submission_time',
         'NNodes': 'requested_number_of_resources',
         'State': 'success',
@@ -174,9 +176,12 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
 
+    formatted_df['account_name'] = formatted_df['account']
     formatted_df['account'] = pd.factorize(formatted_df['account'])[0]
+    formatted_df['normalized_account'] = 1 - (formatted_df['account'] / formatted_df['account'].max())
     formatted_df['username'] = formatted_df["user"]
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
+    formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
 
     # Calculate the 30% most frequent usernames
     top_usernames = formatted_df['username'].value_counts().nlargest(8).index
@@ -220,14 +225,14 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
                 return find_chain_head(dependency, next_dependency.values[0])
 
     # Create the 'dependency_chain_head' column
-    # start_time_task = time.time()
-    # formatted_df['dependency_chain_head'] = formatted_df.apply(
-    #     lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
-    #
-    # formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
-    # end_time_task = time.time()
-    # duration_task = end_time_task - start_time_task
-    # print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
+    start_time_task = time.time()
+    formatted_df['dependency_chain_head'] = formatted_df.apply(
+        lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
+
+    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    end_time_task = time.time()
+    duration_task = end_time_task - start_time_task
+    print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
     formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 
     # Reorder the columns to match the specified order
@@ -237,6 +242,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'submission_time',
         'requested_number_of_resources',
         'requested_time',
+        'partition',
         'success',
         'starting_time',
         'execution_time',
@@ -250,6 +256,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'dependency_chain_head',
         'purpose',
         'account',
+        'normalized_account',
+        'account_name',
         'user',
         'username',
         'user_id',

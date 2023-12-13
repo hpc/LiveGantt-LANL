@@ -10,7 +10,7 @@ FIELDS="jobidraw%9,jobid,priority,qos,partition,nnodes%6,ntasks,submit%24,eligib
 ARGS="-a -X -p"
 START="--start=2023-12-01T00:00"
 
-time sacct --format=${FIELDS} ${ARGS} ${START} --delimiter={ > ${OUT}
+time sacct --format=${FIELDS} ${ARGS} ${START} --delimiter=∆ > ${OUT}
 
 #chmod 0444 slurm_version  ${OUT}
 

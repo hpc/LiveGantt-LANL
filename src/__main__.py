@@ -64,12 +64,12 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    # timeframe = 52
-    # count = 1792
-    # cache = True
-    # clear_cache = False
-    # coloration = "wait"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    timeframe = 52
+    count = 1792
+    cache = True
+    clear_cache = True
+    coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # TODO user_top_20 doesnt work afaik
     # # TODO Implement width for high-res wide charts
 
@@ -81,7 +81,6 @@ def main(argv):
     # clear_cache = True
     # coloration = "wait"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
-
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
     # timeframe = 142
@@ -91,13 +90,12 @@ def main(argv):
     # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
     # Roci Firedrill
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
-    timeframe = 800
-    count = 508
-    cache = True
-    clear_cache = False
-    coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    # TODO Fix dependency
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
+    # timeframe = 800
+    # count = 508
+    # cache = True
+    # clear_cache = False
+    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count, cache, clear_cache, coloration)
 
@@ -193,6 +191,7 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     user_top_20_count = totalDf["user_id"].unique().size
+    partition_count = totalDf["partition"].unique().size
     if coloration == "project" and project_count is None:
         print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
         sys.exit(2)
@@ -207,18 +206,22 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
                       colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
-                      resvSet=parse_reservation_set(totalDf))
+                      resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
                       colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
-                      resvSet=parse_reservation_set(totalDf))
+                      resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
     # Save the figure out to a name based on the end time
+    if coloration == "partition":
+        dpi = 800
+    else:
+        dpi = 500
     plt.savefig(
         "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
             '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
-        dpi=500,
+        dpi=dpi,
     )
     # Close the figure
     plt.close()
@@ -271,16 +274,16 @@ def setDimensions(nodeCount=0, hours=24):
     threshold_c = 1500
 
     if nodeCount <= threshold_a:
-        return (hours*0.5, 12)
+        return (hours * 0.5, 12)
     elif nodeCount > threshold_a and nodeCount <= threshold_b:
         # TODO Smallscalar
-        return (hours*0.5, 12)
+        return (hours * 0.5, 12)
     elif nodeCount > threshold_b and nodeCount <= threshold_c:
         # TODO Medscalar
-        return (hours*0.5, 18)
+        return (hours * 0.5, 18)
     elif nodeCount > threshold_c:
         # TODO Largescalar
-        return (hours*0.5, 35)
+        return (hours * 0.5, 35)
 
 
 if __name__ == '__main__':
