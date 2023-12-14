@@ -64,12 +64,12 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    # timeframe = 52
-    # count = 1792
-    # cache = True
-    # clear_cache = True
-    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    timeframe = 52
+    count = 1792
+    cache = True
+    clear_cache = False
+    coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # TODO user_top_20 doesnt work afaik
     # # TODO Implement width for high-res wide charts
 
@@ -77,9 +77,9 @@ def main(argv):
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
     # timeframe = 36
     # count = 368
-    # cache = True
+    # cache = False
     # clear_cache = True
-    # coloration = "wait"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -89,13 +89,23 @@ def main(argv):
     # clear_cache = False
     # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
-    # Roci Firedrill
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
-    timeframe = 800
-    count = 508
-    cache = True
-    clear_cache = False
-    coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # Roci
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
+    # timeframe = 800
+    # count = 508
+    # cache = True
+    # clear_cache = False
+    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+
+    # Trinitite
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.trinitite.start=2023-11-01T00:00.no-identifiers.txt"
+    # timeframe = 800
+    # count = 200
+    # cache = True
+    # clear_cache = False
+    # coloration = "partition"
+
+
     # Produce the chart
     ganttLastNHours(inputpath, timeframe, count, cache, clear_cache, coloration)
 
@@ -185,12 +195,12 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
-    # Plot the DF
-    # matchlist = ["chicoma", "rocinante"]
+    # TODO The top_10_user calculations should happen here instead
+    totalDf, user_top_20_count = calculate_top_N(totalDf)
+
     # TODO Dependency isn't easy to read - use a more visible highlight
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
-    user_top_20_count = totalDf["user_id"].unique().size
     partition_count = totalDf["partition"].unique().size
     if coloration == "project" and project_count is None:
         print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
@@ -205,13 +215,13 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
         plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
                       resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
     else:
         plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                       title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                           '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=8,
+                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
                       resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
     # Save the figure out to a name based on the end time
     if coloration == "partition":
@@ -234,6 +244,18 @@ def parse_reservation_set(df):
             reservation_set.append(row)
     return reservation_set
 
+def calculate_top_N(formatted_df):
+    # Calculate the 30% most frequent usernames
+    top_usernames = formatted_df['username'].value_counts().nlargest(20).index
+    # Create a mapping of usernames to unique user IDs
+    username_to_user_id = {username: i for i, username in enumerate(top_usernames, start=1)}
+    # Apply the mapping to create a new 'user_id' column
+    formatted_df['user_id'] = formatted_df['username'].map(username_to_user_id).fillna(0)
+    # If there are any usernames not in the top 30%, set their 'user_id' to '0'
+    formatted_df.loc[~formatted_df['username'].isin(top_usernames), 'user_id'] = 0
+    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
+    user_top_N_count = formatted_df["user_id"].unique().size
+    return formatted_df, user_top_N_count
 
 def calculate_sha256(filename):
     sha256_hash = hashlib.sha256()

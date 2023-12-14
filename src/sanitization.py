@@ -30,7 +30,6 @@ def cache_column_typing(formatted_df):
     # Loop through the specified columns and convert values to datetime objects
     for col in columns_to_convert:  # TODO I could do __converters instead on evalys.read_csv but there's not a good reason to
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
-    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
     formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
 
@@ -154,8 +153,15 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     # on. Then replace the pipe separator used in the allocated resources field with a space, which is preferred for
     # parsing here-on-in
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
-        lambda x: x.strip("fg[]snid").replace("|", " "))
+        lambda x: x.replace("f", "").replace("g", "").replace("[", "").replace("]", "").replace("s", "").replace("n",
+                                                                                                                 "").replace(
+            "i", "").replace("d", "").replace("|", " ")
+    )
 
+    # formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
+    #     lambda x: x.strip("fg[]snid").replace("|", " "))
+    # formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
+    #     lambda x: x.strip("[]"))
     # Apply the strip_leading_zeros function to the 'allocated resources' column
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(strip_leading_zeroes)
     # Apply the string_to_procset function to the allocated_resources column
@@ -183,19 +189,6 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
 
-    # Calculate the 30% most frequent usernames
-    top_usernames = formatted_df['username'].value_counts().nlargest(8).index
-
-    # Create a mapping of usernames to unique user IDs
-    username_to_user_id = {username: i for i, username in enumerate(top_usernames, start=1)}
-
-    # Apply the mapping to create a new 'user_id' column
-    formatted_df['user_id'] = formatted_df['username'].map(username_to_user_id).fillna(0)
-
-    # If there are any usernames not in the top 30%, set their 'user_id' to '0'
-    formatted_df.loc[~formatted_df['username'].isin(top_usernames), 'user_id'] = 0
-
-    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -260,7 +253,6 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'account_name',
         'user',
         'username',
-        'user_id',
         'flags',
     ]]
 
