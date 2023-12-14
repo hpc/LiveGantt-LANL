@@ -195,7 +195,6 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
-    # TODO The top_10_user calculations should happen here instead
     totalDf, user_top_20_count = calculate_top_N(totalDf)
 
     # TODO Dependency isn't easy to read - use a more visible highlight
