@@ -70,7 +70,7 @@ def main(argv):
     count = 1792
     cache = True
     clear_cache = False
-    coloration_set = ["partition", "user","default"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
