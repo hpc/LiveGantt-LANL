@@ -26,7 +26,8 @@ def main(argv):
     count = 0
     cache = True
     clear_cache = False
-    coloration = "default"
+    coloration = ["default"]
+    vizset = []
 
     # Parse provided arguments and set variables to their values
     try:
@@ -69,10 +70,8 @@ def main(argv):
     count = 1792
     cache = True
     clear_cache = False
-    coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    # TODO user_top_20 doesnt work afaik
-    # # TODO Implement width for high-res wide charts
-
+    coloration_set = ["partition", "user","default"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    vizset.append((inputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
     # timeframe = 36
@@ -107,14 +106,20 @@ def main(argv):
 
 
     # Produce the chart
-    ganttLastNHours(inputpath, timeframe, count, cache, clear_cache, coloration)
+    for set in vizset:
+        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5])
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
+    # TODO Continue adding functionality and coloration schemes to LiveGantt
+    # TODO Respond to any relevant production requests with LiveGantt visualizations.
+    # TODO Improve the code quality, cohesion, and usability of LiveGantt.
+    # TODO Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
+    # TODO Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
 
-def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False, coloration="default"):
+def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False, coloration_set=["default"]):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -197,43 +202,43 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
 
-    # TODO Dependency isn't easy to read - use a more visible highlight
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     partition_count = totalDf["partition"].unique().size
-    if coloration == "project" and project_count is None:
-        print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
-        sys.exit(2)
-    elif coloration == "user" and user_count is None:
-        print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
-        sys.exit(2)
-    elif coloration == "user_top_20" and user_top_20_count is None:
-        print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
-        sys.exit(2)
-    if clusterName != "chicoma" and clusterName != "rocinante":
-        plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
-                      title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
-                      resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
-    else:
-        plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
-                      title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                          '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                      colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
-                      resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
-    # Save the figure out to a name based on the end time
-    if coloration == "partition":
-        dpi = 800
-    else:
-        dpi = 500
-    plt.savefig(
-        "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
-            '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
-        dpi=dpi,
-    )
-    # Close the figure
-    plt.close()
+    for coloration in coloration_set:
+        if coloration == "project" and project_count is None:
+            print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
+            sys.exit(2)
+        elif coloration == "user" and user_count is None:
+            print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
+            sys.exit(2)
+        elif coloration == "user_top_20" and user_top_20_count is None:
+            print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
+            sys.exit(2)
+        if clusterName != "chicoma" and clusterName != "rocinante":
+            plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
+                          title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
+                              '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                          colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
+                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
+        else:
+            plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
+                          title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
+                              '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                          colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
+                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
+        # Save the figure out to a name based on the end time
+        if coloration == "partition":
+            dpi = 800
+        else:
+            dpi = 500
+        plt.savefig(
+            "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
+                '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
+            dpi=dpi,
+        )
+        # Close the figure
+        plt.close()
 
 
 def parse_reservation_set(df):
