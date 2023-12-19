@@ -118,6 +118,7 @@ def main(argv):
     # TODO Improve the code quality, cohesion, and usability of LiveGantt.
     # TODO Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
     # TODO Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
+    # TODO Forward along fixed presentation version
 
 def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False, coloration_set=["default"]):
     """
@@ -128,72 +129,10 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     """
     clusterName = outJobsCSV.split(".")[2]
     # Print some basic information on the operating parameters
-    print("\nLiveGantt Initialized!\n")
-    print("Input file:\t" + outJobsCSV)
-    print("Hours:\t" + str(hours))
-    print("Cluster name:\t" + clusterName)
-    print("Size of cluster:\t" + str(clusterSize))
-    print("\nDetermining chart window...")
-    # Open the output file and figure out what columns hold 'Start' and 'End' time values
-    with open(outJobsCSV) as f:
-        header = f.readlines()[0].split(",")
-        indices = []
-        for i, elem in enumerate(header):
-            if 'Start' in elem:
-                indices.append(i)
-        startColIndex = indices[0]
-        for i, elem in enumerate(header):
-            if 'End' in elem:
-                indices.append(i)
-        endColIndex = indices[1]
+    chartEndTime, chartStartTime = initialization(clusterName, clusterSize, hours, outJobsCSV)
 
-    # Determine chart start and end times
-    # Set the end time of the chart to the value determined by seekLastLine
-    chartEndTime = seekLastLine(outJobsCSV, endColIndex, startColIndex, -1)
-    eightHours = datetime.timedelta(hours=hours)
-    chartStartTime = chartEndTime - eightHours
-
-    # Print dates and times of chart start & end
-    print("Start of chart window:\t" + str(chartStartTime))
-    print("End of chart window:\t" + str(chartEndTime))
     # Sanitize the data from the inputfile
-
-    cache_name = outJobsCSV + "_sanitized_cache.csv"
-    if clear_cache:
-        if os.path.isfile(cache_name):
-            os.remove(cache_name)
-            print("Old cache removed!")
-        else:
-            print("No cache file found!")
-
-    if cache is True:
-        input_file_hash = calculate_sha256(outJobsCSV)
-        if os.path.isfile(cache_name):
-            print("Cache exists! Hashing ...")
-            cache_hash = calculate_sha256(cache_name.removesuffix("_sanitized_cache.csv"))
-            if input_file_hash == cache_hash:
-                print("Cache valid! Loading df from cache...")
-                start_time_task = time.time()
-                df = pd.read_csv(cache_name)
-                df = sanitization.cache_column_typing(df)
-                end_time_task = time.time()
-                duration_task = end_time_task - start_time_task
-                print("Cache loaded in " + str(duration_task) + "s")
-
-            else:
-                print("Cache invalid!")
-                df = sanitization.sanitizeFile(outJobsCSV)
-                df.to_csv(cache_name)
-                print("Wrote new cache!")
-
-        else:
-            df = sanitization.sanitizeFile(outJobsCSV)
-            df.to_csv(cache_name)
-            print("Wrote new cache!")
-
-
-    else:
-        df = sanitization.sanitizeFile(outJobsCSV)
+    df = check_cache_and_return_df(cache, clear_cache, outJobsCSV)
 
     maxJobLen = batvis.utils.getMaxJobLen(df)
     # Cut the jobset to the size of the window
@@ -239,6 +178,80 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
         )
         # Close the figure
         plt.close()
+
+
+def initialization(clusterName, clusterSize, hours, outJobsCSV):
+    print("\nLiveGantt Initialized!\n")
+    print("Input file:\t" + outJobsCSV)
+    print("Hours:\t" + str(hours))
+    print("Cluster name:\t" + clusterName)
+    print("Size of cluster:\t" + str(clusterSize))
+    print("\nDetermining chart window...")
+    # Open the output file and figure out what columns hold 'Start' and 'End' time values
+    endColIndex, startColIndex = parse_start_and_end(outJobsCSV)
+    # Determine chart start and end times
+    # Set the end time of the chart to the value determined by seekLastLine
+    chartEndTime = seekLastLine(outJobsCSV, endColIndex, startColIndex, -1)
+    eightHours = datetime.timedelta(hours=hours)
+    chartStartTime = chartEndTime - eightHours
+    # Print dates and times of chart start & end
+    print("Start of chart window:\t" + str(chartStartTime))
+    print("End of chart window:\t" + str(chartEndTime))
+    return chartEndTime, chartStartTime
+
+
+def check_cache_and_return_df(cache, clear_cache, outJobsCSV):
+    cache_name = outJobsCSV + "_sanitized_cache.csv"
+    if clear_cache:
+        if os.path.isfile(cache_name):
+            os.remove(cache_name)
+            print("Old cache removed!")
+        else:
+            print("No cache file found!")
+    if cache is True:
+        input_file_hash = calculate_sha256(outJobsCSV)
+        if os.path.isfile(cache_name):
+            print("Cache exists! Hashing ...")
+            cache_hash = calculate_sha256(cache_name.removesuffix("_sanitized_cache.csv"))
+            if input_file_hash == cache_hash:
+                print("Cache valid! Loading df from cache...")
+                start_time_task = time.time()
+                df = pd.read_csv(cache_name)
+                df = sanitization.cache_column_typing(df)
+                end_time_task = time.time()
+                duration_task = end_time_task - start_time_task
+                print("Cache loaded in " + str(duration_task) + "s")
+
+            else:
+                print("Cache invalid!")
+                df = sanitization.sanitizeFile(outJobsCSV)
+                df.to_csv(cache_name)
+                print("Wrote new cache!")
+
+        else:
+            df = sanitization.sanitizeFile(outJobsCSV)
+            df.to_csv(cache_name)
+            print("Wrote new cache!")
+
+
+    else:
+        df = sanitization.sanitizeFile(outJobsCSV)
+    return df
+
+
+def parse_start_and_end(outJobsCSV):
+    with open(outJobsCSV) as f:
+        header = f.readlines()[0].split(",")
+        indices = []
+        for i, elem in enumerate(header):
+            if 'Start' in elem:
+                indices.append(i)
+        startColIndex = indices[0]
+        for i, elem in enumerate(header):
+            if 'End' in elem:
+                indices.append(i)
+        endColIndex = indices[1]
+    return endColIndex, startColIndex
 
 
 def parse_reservation_set(df):
