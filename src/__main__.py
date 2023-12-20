@@ -65,15 +65,15 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    outputpath = None
-    timeframe = 52
-    count = 1792
-    cache = True
-    clear_cache = False
-    coloration_set = ["sched"]
-    # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    # outputpath = None
+    # timeframe = 52
+    # count = 1792
+    # cache = True
+    # clear_cache = False
+    # coloration_set = ["partition"]
+    # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
     # outputpath = None
@@ -95,12 +95,15 @@ def main(argv):
     # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
     # Roci
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
-    # timeframe = 800
-    # count = 508
-    # cache = True
-    # clear_cache = False
-    # coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
+    outputpath = None
+    timeframe = 800
+    count = 508
+    cache = True
+    clear_cache = False
+    coloration_set = ["partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+
 
     # Trinitite
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.trinitite.start=2023-11-01T00:00.no-identifiers.txt"
@@ -154,7 +157,7 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
-    edgeMethod="default"
+    edgeMethod="sched"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
