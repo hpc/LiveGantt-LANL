@@ -101,7 +101,7 @@ def main(argv):
     count = 508
     cache = True
     clear_cache = False
-    coloration_set = ["partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 
@@ -157,7 +157,9 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
-    edgeMethod="sched"
+
+    # TODO This should be more specific
+    edgeMethod="default"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
