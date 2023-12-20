@@ -79,9 +79,9 @@ def main(argv):
     count = 368
     cache = True
     clear_cache = False
-    coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
+                      "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
-
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -107,7 +107,6 @@ def main(argv):
     # clear_cache = False
     # coloration = "partition"
 
-
     # Produce the chart
     for set in vizset:
         ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6])
@@ -122,9 +121,12 @@ def main(argv):
     # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
     # TODO [✅]  - Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
     # TODO [ ]   - Forward along fixed presentation version to SLUG
-    # TODO [✅]   - Output to a "./pictures" folder locally
+    # TODO [✅]  - Output to a "./pictures" folder locally
+    # TODO [ ]   - Implement modular border parameters
 
-def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False, coloration_set=["default"]):
+
+def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False,
+                    coloration_set=["default"]):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -147,25 +149,28 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
+    edgeMethod="sched"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     partition_count = totalDf["partition"].unique().size
-    
+
     for coloration in coloration_set:
         terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count)
         if clusterName != "chicoma" and clusterName != "rocinante":
             plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                           title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                               '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                          colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
-                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
+                          colorationMethod=coloration, num_projects=project_count, num_users=user_count,
+                          num_top_users=user_top_20_count,
+                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count, edgeMethod=edgeMethod)
         else:
             plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
                           title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
                               '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                          colorationMethod=coloration, num_projects=project_count, num_users=user_count, num_top_users=user_top_20_count,
-                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count)
+                          colorationMethod=coloration, num_projects=project_count, num_users=user_count,
+                          num_top_users=user_top_20_count,
+                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count, edgeMethod=edgeMethod)
         # Save the figure out to a name based on the end time
         if coloration == "partition":
             dpi = 800
@@ -195,6 +200,7 @@ def terminate_if_conditions_not_met(coloration, project_count, user_count, user_
 def check_output_dir_validity(outputpath):
     if not os.path.isdir(outputpath) and not os.path.isfile(outputpath):
         os.mkdir(outputpath)
+
 
 def initialization(clusterName, clusterSize, hours, outJobsCSV):
     print("\nLiveGantt Initialized!\n")
@@ -277,6 +283,7 @@ def parse_reservation_set(df):
             reservation_set.append(row)
     return reservation_set
 
+
 def calculate_top_N(formatted_df):
     # Calculate the 30% most frequent usernames
     top_usernames = formatted_df['username'].value_counts().nlargest(20).index
@@ -289,6 +296,7 @@ def calculate_top_N(formatted_df):
     formatted_df['user_id'] = formatted_df['user_id'].astype(int)
     user_top_N_count = formatted_df["user_id"].unique().size
     return formatted_df, user_top_N_count
+
 
 def calculate_sha256(filename):
     sha256_hash = hashlib.sha256()
@@ -329,16 +337,16 @@ def setDimensions(nodeCount=0, hours=24):
     threshold_c = 1500
 
     if nodeCount <= threshold_a:
-        return (hours * 0.5, 12)
-    elif nodeCount > threshold_a and nodeCount <= threshold_b:
+        return hours * 0.5, 12
+    elif threshold_a < nodeCount <= threshold_b:
         # TODO Smallscalar
-        return (hours * 0.5, 12)
-    elif nodeCount > threshold_b and nodeCount <= threshold_c:
+        return hours * 0.5, 12
+    elif threshold_b < nodeCount <= threshold_c:
         # TODO Medscalar
-        return (hours * 0.5, 18)
+        return hours * 0.5, 18
     elif nodeCount > threshold_c:
         # TODO Largescalar
-        return (hours * 0.5, 35)
+        return hours * 0.5, 35
 
 
 if __name__ == '__main__':
