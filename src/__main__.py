@@ -65,13 +65,15 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    # timeframe = 52
-    # count = 1792
-    # cache = True
-    # clear_cache = False
-    # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
-    # vizset.append((inputpath, timeframe, count, cache, clear_cache, coloration_set))
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = None
+    timeframe = 52
+    count = 1792
+    cache = True
+    clear_cache = False
+    coloration_set = ["exitstate"]
+    # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Snow
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
     outputpath = None
@@ -79,8 +81,9 @@ def main(argv):
     count = 368
     cache = True
     clear_cache = False
-    coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
-                      "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    coloration_set = ["exitstate"]
+    # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
+    #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
     # Fog
@@ -121,8 +124,10 @@ def main(argv):
     # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
     # TODO [✅]  - Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
     # TODO [ ]   - Forward along fixed presentation version to SLUG
-    # TODO [✅]  - Output to a "./pictures" folder locally
-    # TODO [ ]   - Implement modular border parameters
+    # TODO [✅]  - Dynamically output to an outputfolder that the user provides, if not provided, fall back to a generated name based on the cluster name and current time
+    # TODO [✅]   - Implement modular border parameters
+    # TODO [ ]   - Implement job success coloration
+
 
 
 def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False,
@@ -149,7 +154,7 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
-    edgeMethod="sched"
+    edgeMethod="default"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
@@ -339,13 +344,10 @@ def setDimensions(nodeCount=0, hours=24):
     if nodeCount <= threshold_a:
         return hours * 0.5, 12
     elif threshold_a < nodeCount <= threshold_b:
-        # TODO Smallscalar
         return hours * 0.5, 12
     elif threshold_b < nodeCount <= threshold_c:
-        # TODO Medscalar
         return hours * 0.5, 18
     elif nodeCount > threshold_c:
-        # TODO Largescalar
         return hours * 0.5, 35
 
 
