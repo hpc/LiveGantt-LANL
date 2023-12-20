@@ -65,20 +65,23 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    timeframe = 52
-    count = 1792
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
+    # timeframe = 52
+    # count = 1792
+    # cache = True
+    # clear_cache = False
+    # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    # vizset.append((inputpath, timeframe, count, cache, clear_cache, coloration_set))
+    # Snow
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = None
+    timeframe = 36
+    count = 368
     cache = True
     clear_cache = False
     coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
-    vizset.append((inputpath, timeframe, count, cache, clear_cache, coloration_set))
-    # Snow
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
-    # timeframe = 36
-    # count = 368
-    # cache = False
-    # clear_cache = True
-    # coloration = "user_top_20"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -107,20 +110,21 @@ def main(argv):
 
     # Produce the chart
     for set in vizset:
-        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5])
+        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6])
 
     # Cleanup workdir
     # os.remove("out.txt")
     # os.remove(inputpath)
 
-    # TODO Continue adding functionality and coloration schemes to LiveGantt
-    # TODO Respond to any relevant production requests with LiveGantt visualizations.
-    # TODO Improve the code quality, cohesion, and usability of LiveGantt.
-    # TODO Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
-    # TODO Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
-    # TODO Forward along fixed presentation version
+    # TODO [ ]   - Continue adding functionality and coloration schemes to LiveGantt
+    # TODO [ ]   - Respond to any relevant production requests with LiveGantt visualizations.
+    # TODO [2/3] - Improve the code quality [✅], cohesion [✅], and usability of LiveGantt.
+    # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
+    # TODO [✅]  - Implement batch visualization production for all datasets in local folder, to make it easier to automate the "weekly prod" charts that Steve and I talked about.
+    # TODO [ ]   - Forward along fixed presentation version to SLUG
+    # TODO [✅]   - Output to a "./pictures" folder locally
 
-def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=False, coloration_set=["default"]):
+def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False, coloration_set=["default"]):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -128,6 +132,9 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     :return:
     """
     clusterName = outJobsCSV.split(".")[2]
+    if outputpath is None:
+        outputpath = "Charts_for_" + clusterName + "_generated_" + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    check_output_dir_validity(outputpath)
     # Print some basic information on the operating parameters
     chartEndTime, chartStartTime = initialization(clusterName, clusterSize, hours, outJobsCSV)
 
@@ -144,16 +151,9 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     partition_count = totalDf["partition"].unique().size
+    
     for coloration in coloration_set:
-        if coloration == "project" and project_count is None:
-            print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
-            sys.exit(2)
-        elif coloration == "user" and user_count is None:
-            print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
-            sys.exit(2)
-        elif coloration == "user_top_20" and user_top_20_count is None:
-            print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
-            sys.exit(2)
+        terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count)
         if clusterName != "chicoma" and clusterName != "rocinante":
             plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
                           title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
@@ -172,13 +172,29 @@ def ganttLastNHours(outJobsCSV, hours, clusterSize, cache=False, clear_cache=Fal
         else:
             dpi = 500
         plt.savefig(
-            "./" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
+            outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
                 '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
             dpi=dpi,
         )
         # Close the figure
         plt.close()
 
+
+def terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count):
+    if coloration == "project" and project_count is None:
+        print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
+        sys.exit(2)
+    elif coloration == "user" and user_count is None:
+        print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
+        sys.exit(2)
+    elif coloration == "user_top_20" and user_top_20_count is None:
+        print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
+        sys.exit(2)
+
+
+def check_output_dir_validity(outputpath):
+    if not os.path.isdir(outputpath) and not os.path.isfile(outputpath):
+        os.mkdir(outputpath)
 
 def initialization(clusterName, clusterSize, hours, outJobsCSV):
     print("\nLiveGantt Initialized!\n")
