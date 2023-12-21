@@ -65,26 +65,26 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-01T00:00.no-identifiers.txt"
-    # outputpath = None
-    # timeframe = 52
-    # count = 1792
-    # cache = True
-    # clear_cache = False
-    # coloration_set = ["partition"]
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2023-12-10T00:00.no-identifiers.txt"
+    outputpath = None
+    timeframe = 168
+    count = 1792
+    cache = True
+    clear_cache = False
+    coloration_set = ["exitstate", "partition", "wait", "sched"]
     # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
-    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Snow
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-01T00:00.no-identifiers.txt"
-    # outputpath = None
-    # timeframe = 36
-    # count = 368
-    # cache = True
-    # clear_cache = False
-    # coloration_set = ["exitstate"]
-    # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
-    # #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
-    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2023-12-10T00:00.no-identifiers.txt"
+    outputpath = None
+    timeframe = 168
+    count = 368
+    cache = True
+    clear_cache = False
+    coloration_set = ["exitstate", "partition", "wait", "sched"]
+    # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
+    #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
     # Fog
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.fog.start=2023-10-01T00:00.no-identifiers.txt"
@@ -95,13 +95,13 @@ def main(argv):
     # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
 
     # Roci
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-11-01T00:00.no-identifiers.txt"
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-10T00:00.no-identifiers.txt"
     outputpath = None
-    timeframe = 800
+    timeframe = 168
     count = 508
     cache = True
     clear_cache = False
-    coloration_set = ["partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["exitstate", "partition", "wait", "sched"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 
@@ -129,7 +129,13 @@ def main(argv):
     # TODO [ ]   - Forward along fixed presentation version to SLUG
     # TODO [✅]  - Dynamically output to an outputfolder that the user provides, if not provided, fall back to a generated name based on the cluster name and current time
     # TODO [✅]   - Implement modular border parameters
-    # TODO [ ]   - Implement job success coloration
+    # TODO [✅]   - Implement job success coloration
+    # TODO [✅]    - Weekly WLM & PROD chart set
+    # TODO [ ]    - Automate weekly WLM & PROD chart set
+    # TODO [ ]    - Wait time legend
+    # TODO [ ]    - Partition legend
+
+
 
 
 
@@ -159,7 +165,7 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     totalDf, user_top_20_count = calculate_top_N(totalDf)
 
     # TODO This should be more specific
-    edgeMethod="default"
+    edgeMethod="sched"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()

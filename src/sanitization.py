@@ -65,7 +65,10 @@ def string_to_procset(s):
     :param s: String to convert
     :return: The resulting ProcSet
     """
-    return ProcSet.from_str(s)
+    try:
+        return ProcSet.from_str(s)
+    except:
+        return None
 
 
 def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking in cases where I absolutely need to.
