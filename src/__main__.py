@@ -9,7 +9,9 @@ import batvis.utils
 import matplotlib.pyplot as plt
 import pandas
 import pandas as pd
+from matplotlib import gridspec
 
+import evalys.visu.legacy
 import sanitization
 
 from evalys.utils import cut_workload
@@ -80,7 +82,7 @@ def main(argv):
     timeframe = 168
     count = 368
     cache = True
-    clear_cache = False
+    clear_cache = True
     coloration_set = ["exitstate", "partition", "wait", "sched"]
     # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
     #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
@@ -100,7 +102,7 @@ def main(argv):
     timeframe = 168
     count = 508
     cache = True
-    clear_cache = False
+    clear_cache = True
     coloration_set = ["exitstate", "partition", "wait", "sched"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
@@ -134,6 +136,7 @@ def main(argv):
     # TODO [ ]    - Automate weekly WLM & PROD chart set
     # TODO [ ]    - Wait time legend
     # TODO [ ]    - Partition legend
+    # TODO [ ]    - Can I flag jobs that timeout but don't checkpoint?
 
 
 
@@ -192,6 +195,9 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
             dpi = 800
         else:
             dpi = 500
+
+        plt.tight_layout()
+
         plt.savefig(
             outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
                 '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
