@@ -147,7 +147,7 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
-    :param outfile: the file to write the produced chart out to
+    :param outputpath: the file to write the produced chart out to
     :return:
     """
     clusterName = outJobsCSV.split(".")[2]
@@ -208,6 +208,14 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
 
 
 def terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count):
+    """
+    This function checks that the requisite parameters are set for the given coloration method.
+    :param coloration:
+    :param project_count:
+    :param user_count:
+    :param user_top_20_count:
+    :return:
+    """
     if coloration == "project" and project_count is None:
         print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
         sys.exit(2)
@@ -220,11 +228,24 @@ def terminate_if_conditions_not_met(coloration, project_count, user_count, user_
 
 
 def check_output_dir_validity(outputpath):
+    """
+    Checks if the outputdir is a valid output point, if not it creates it.
+    :param outputpath:
+    :return:
+    """
     if not os.path.isdir(outputpath) and not os.path.isfile(outputpath):
         os.mkdir(outputpath)
 
 
 def initialization(clusterName, clusterSize, hours, outJobsCSV):
+    """
+    Returns the end and start of the chart window
+    :param clusterName: Name of the cluster
+    :param clusterSize: Size of the cluster
+    :param hours: Size of the chart window in hours
+    :param outJobsCSV: The path to the output file
+    :return: the end and start times of the chart window
+    """
     print("\nLiveGantt Initialized!\n")
     print("Input file:\t" + outJobsCSV)
     print("Hours:\t" + str(hours))
@@ -245,6 +266,13 @@ def initialization(clusterName, clusterSize, hours, outJobsCSV):
 
 
 def check_cache_and_return_df(cache, clear_cache, outJobsCSV):
+    """
+    Checks for an existing cache for the outputfile, if one is found, return a dataframe loaded from cache.
+    :param cache: boolean value indicating whether to check for a cache
+    :param clear_cache: boolean value indicating whether to clear any existing cache
+    :param outJobsCSV: the path of the target file
+    :return: Return a dataframe containing the sanitized file output, either from cache or from a new cache.
+    """
     cache_name = outJobsCSV + "_sanitized_cache.csv"
     if clear_cache:
         if os.path.isfile(cache_name):
@@ -284,6 +312,11 @@ def check_cache_and_return_df(cache, clear_cache, outJobsCSV):
 
 
 def parse_start_and_end(outJobsCSV):
+    """
+    Parses the column indexes the 'Start' and 'End' dataframe columns, as these indexes are unknown and possibly variant prior to sanitization
+    :param outJobsCSV: the path of the target file
+    :return: the indexes of the start and end columns of the dataframe
+    """
     with open(outJobsCSV) as f:
         header = f.readlines()[0].split(",")
         indices = []
@@ -299,6 +332,11 @@ def parse_start_and_end(outJobsCSV):
 
 
 def parse_reservation_set(df):
+    """
+    Generate and return a set containing all of the DF rows which are reservations.
+    :param df:
+    :return:
+    """
     reservation_set = []
     for index, row in df.iterrows():
         if row["purpose"] == "reservation":
@@ -307,6 +345,11 @@ def parse_reservation_set(df):
 
 
 def calculate_top_N(formatted_df):
+    """
+    Used to calculate a top percentage of users in a column
+    :param formatted_df:
+    :return:
+    """
     # Calculate the 30% most frequent usernames
     top_usernames = formatted_df['username'].value_counts().nlargest(20).index
     # Create a mapping of usernames to unique user IDs
@@ -321,6 +364,11 @@ def calculate_top_N(formatted_df):
 
 
 def calculate_sha256(filename):
+    """
+    Return a sha256 hash of the specified filename. This is used to check cache freshness
+    :param filename: Name of file to hash
+    :return: Hash
+    """
     sha256_hash = hashlib.sha256()
     sha256_hash.update(filename.encode('utf-8'))
     return sha256_hash.hexdigest()
@@ -354,6 +402,12 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
 
 
 def setDimensions(nodeCount=0, hours=24):
+    """
+    Set the dimensions of the plot
+    :param nodeCount: Size of the cluster
+    :param hours: Size of the window
+    :return: Dimensions to use for the plot
+    """
     threshold_a = 48
     threshold_b = 600
     threshold_c = 1500

@@ -25,6 +25,11 @@ def twenty22():
 
 
 def cache_column_typing(formatted_df):
+    """
+    Properly formats columns for use when loading from cache dataframe
+    :param formatted_df: the dataframe loaded from cache
+    :return: the dataframe once being properly typed
+    """
     # Convert times into the preferred time format
     columns_to_convert = ['submission_time', 'starting_time', 'finish_time']
     # Loop through the specified columns and convert values to datetime objects
@@ -208,6 +213,12 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     )
 
     def find_chain_head(job_id, dependency):
+        """
+        Seek through the job dependency chain to find the head of the chain
+        :param job_id:
+        :param dependency:
+        :return:
+        """
         # If there is no dependency, return the current JobID
         if pd.isna(dependency) or dependency == 'nan':
             return job_id
