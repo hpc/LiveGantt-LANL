@@ -95,14 +95,13 @@ def main(argv):
 
     # Roci
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-10T00:00.no-identifiers.txt"
-    outputpath = None
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
     timeframe = 168
     count = 508
     cache = True
     clear_cache = False
-    utilization = True
     coloration_set = ["exitstate", "partition", "wait", "sched"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, utilization))
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 
     # Trinitite
@@ -115,7 +114,7 @@ def main(argv):
 
     # Produce the chart
     for set in vizset:
-        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7])
+        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6])
 
     # Cleanup workdir
     # os.remove("out.txt")
@@ -141,7 +140,7 @@ def main(argv):
 
 
 def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False,
-                    coloration_set=["default"], utilization=False):
+                    coloration_set=["default"]):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -151,6 +150,8 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     clusterName = outJobsCSV.split(".")[2]
     if outputpath is None:
         outputpath = "Charts_for_" + clusterName + "_generated_" + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    else:
+        outputpath = outputpath+ "/" + "Charts_for_" + clusterName + "_generated_" + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     check_output_dir_validity(outputpath)
     # Print some basic information on the operating parameters
     chartEndTime, chartStartTime = initialization(clusterName, clusterSize, hours, outJobsCSV)
@@ -194,6 +195,8 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
         else:
             dpi = 500
 
+        plt.xlabel("Time")
+        plt.ylabel("Node ID")
         plt.tight_layout()
 
         plt.savefig(
@@ -214,7 +217,6 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
             windowStartTime=chartStartTime,
             windowFinishTime=chartEndTime,
             with_details=False,
-            utilizationOnly=True,
         )
 
         plt.savefig(
