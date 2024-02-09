@@ -211,7 +211,6 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
             windowStartTime=chartStartTime,
             windowFinishTime=chartEndTime,
             with_details=False,
-            power=True if "power" in coloration_set else False,
         )
 
         plt.savefig(
