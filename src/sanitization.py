@@ -149,6 +149,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'Account': 'account',
         'User': 'user',
         'Flags' : 'flags',
+        'ConsumedEnergyRaw' : 'consumedEnergy',
     })
 
     # Convert times into the preferred time format
@@ -196,7 +197,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['username'] = formatted_df["user"]
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
-
+    formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
+    formatted_df['powerFactor'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -236,7 +238,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['dependency_chain_head'] = formatted_df.apply(
         lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
 
-    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].apply(lambda x: int(x) if isinstance(x, int) else int(x.split('+')[0]) if '+' in x else int(x))
+
     end_time_task = time.time()
     duration_task = end_time_task - start_time_task
     print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
@@ -268,6 +271,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'user',
         'username',
         'flags',
+        'powerFactor',
+        'consumedEnergy',
     ]]
 
     return formatted_df
