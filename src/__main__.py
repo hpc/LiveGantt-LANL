@@ -23,7 +23,7 @@ def main(argv):
     inputpath = ""
     timeframe = 0
     count = 0
-    cache = True
+    cache = False
     clear_cache = False
     coloration = ["default"]
     vizset = []
@@ -32,9 +32,10 @@ def main(argv):
     try:
         opts, args = getopt.getopt(
             argv,
-            "i:t:c:k:x:h",
+            "i:o:t:c:k:x:h",
             [
                 "ipath=",
+                "opath=",
                 "timeframe=",
                 "count=",
                 "cache=",
@@ -50,6 +51,8 @@ def main(argv):
     for opt, arg in opts:
         if opt == "-i":
             inputpath = arg
+        elif opt in "-o":
+            outputpath = arg
         elif opt in "-t":
             timeframe = int(arg)
         elif opt in "-c":
@@ -94,14 +97,14 @@ def main(argv):
     # # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     #
     # # Roci
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt"
-    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 168
-    count = 508
-    cache = True
-    # TODO Cache doesn't work with power rn
-    clear_cache = True
-    coloration_set = ["power"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt"
+    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    # timeframe = 168
+    # count = 508
+    # cache = True
+    #
+    # clear_cache = False
+    coloration_set = ["power", "project","exitstate", "partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 
@@ -130,6 +133,8 @@ def main(argv):
     # TODO [ ]   - Forward along fixed presentation version to SLUG
     # TODO [ ]    - Automate weekly WLM & PROD chart set
     # TODO [ ]    - Partition legend
+    # TODO [ ]    - Force to undo dependency chain
+    # TODO [ ]    - FIX THE FULL TRANSPARENCY ISSUE
 
 
 

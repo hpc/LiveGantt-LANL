@@ -14,9 +14,10 @@
 
 # LOAD MODULEFILES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 
+livegantt_version="1.0"
 current_date=$(date +'--start=%Y-%m-%dT00:00')
 outfile="sacct.out.$(scontrol show config | awk '/ClusterName/ {print $NF}').start=$(date +'%Y-%m-%d')T00:00.no-identifiers.txt"
-bundle="/users/vhafener/LiveGantt/oci_images/livegantt_v0.6/rootfs"
+bundle="/users/vhafener/LiveGantt/oci_images/livegantt_v${livegantt_version}/rootfs"
 
 ./collectSacctSB.sh  &
 
@@ -27,4 +28,4 @@ pid_collect=$!
 wait $pid_collect
 
 # Launch b.sh after a.sh has finished
-srun --container $bundle bash -c "cat /etc/*rel*"
+srun --container $bundle bash -c "python3 src/__main__.py -i/Users/vhafener/Repos/LiveGantt/${outfile} -o/Users/vhafener/Repos/LiveGantt/Charts/ -t168 -c508"

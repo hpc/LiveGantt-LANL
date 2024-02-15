@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="0.6"
+VERSION="1.0"
 FOLDER_ROOT="/Users/vhafener/Repos/LiveGantt"
 #FULL_NAME=livegantt_v${VERSION}
 docker build -t livegantt_v${VERSION} .
