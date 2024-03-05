@@ -33,3 +33,12 @@ coloration_set = ["power", "project", "exitstate", "partition",
 vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 ```
+
+* ```inputpath``` - this line defines the absolute path of the file that you've generated with `collectSacctDB.sh`
+* ```outputpath``` - this line defines the absolute path of the folder in which the output charts will be placed
+* ```timeframe``` - this line defines the timeframe in hours to visualize. This is counted backwards from the time at the end of the data collected in `inputpath`
+* ```count``` - node count of the cluster
+* ```cache``` - if a cache for this inputpath does not exist write to it. If it does exist, load the cached inputfile. This saves a lot of time from the sanitization process
+* ```clear cache``` - delete the existing cache for this inputpath
+* ```coloration_set``` - this field contains a set of strings that define which coloration schemes to create charts for
+* The final line is necessary to append this set of values to the overall vizset. Because of this structure, you can add as many clusters as you want
