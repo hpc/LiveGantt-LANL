@@ -15,3 +15,21 @@ This line launches LiveGantt with the inputfile(`-i`) "/Users/vhafener/Repos/Liv
 ## Traditional operation - single- or multi-cluster operation
 Edit the parameters in lines 130-150 of `src/__main__.py` to match the clusters you want to generate charts for, and the proper paths for the input files and such. Launch by running:
 ```python3 src/__main__.py```
+
+Here's a closer look at the visualization parameters for a cluster:
+
+```
+
+# Roci
+inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
+outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+timeframe = 1440
+count = 508
+cache = True
+
+clear_cache = False
+coloration_set = ["power", "project", "exitstate", "partition",
+                  "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+
+```
