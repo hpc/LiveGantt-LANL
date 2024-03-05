@@ -1,14 +1,17 @@
 # LiveViz 
-A tool that generates PNG gantt charts for an HPC cluster at a set resolution & timeframe when called. 
 
-Requirements:
-* This tool will be launched via cron or some external means & therefore must be executable from the command line with no user interaction required
-* This tool will produce a series of PNG artifacts that will then be displayed using "BrightLine". Because of this, this tool does not need to address the display of these charts. 
-* This tool will produce visualizations from the sacct out dump
-* This tool should account for differences between cluster configuration and outfile formatting 
-* Produced images are ordered in the directory via a timestamp, sequence # or collation which corresponds to time.
-* Produced images should be scaled appropriately for display on the intended media
-* Tool is relatively compact and has minimal dependencies. 
+### Local Installation
+1. First, clone https://gitlab.newmexicoconsortium.org/lanl-ccu/evalys and run:
+```python3 -m pip install ./evalys```
+2. Then, clone this repo.
+3. After cloning, install everything in `requirements.txt`, except for evalys (you've already installed the modified version of this component)
+4. There are two ways to run the program from here.
+## Command line operation - single-cluster operation
+You can call LiveGantt via the command line using a wide range of arguments. 
 
-Outline:
-Shell script will be executed by cron, which will generate the sacct dump then launch the program. Python will be used due to it's operability with the BatViz tooling. If necessary, Rust with Python callings could be used in order to provide an executable binary, but this option is less ideal. The program will import the modified evalys tooling and batvis and make use of existing methods in order to minimize the amount of new work required and streamline the operation and integration of these tools.
+```python3 src/__main__.py -i/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt -o/Users/vhafener/Repos/LiveGantt/Charts/ -t168 -c508 -kFalse```
+This line launches LiveGantt with the inputfile(`-i`) "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt" the output folder location(`-o`) "/Users/vhafener/Repos/LiveGantt/Charts/" the timespan (`-t`) of 168 hours, the node count (`-c`) of 508, and cache (`-k`) disabled "False"  
+
+## Traditional operation - single- or multi-cluster operation
+Edit the parameters in lines 130-150 of `src/__main__.py` to match the clusters you want to generate charts for, and the proper paths for the input files and such. Launch by running:
+```python3 src/__main__.py```
