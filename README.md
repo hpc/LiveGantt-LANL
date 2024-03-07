@@ -42,3 +42,10 @@ vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, colo
 * ```clear cache``` - delete the existing cache for this inputpath
 * ```coloration_set``` - this field contains a set of strings that define which coloration schemes to create charts for
 * The final line is necessary to append this set of values to the overall vizset. Because of this structure, you can add as many clusters as you want
+
+## Automation of LiveGantt runs using Slurm
+LiveGantt can also be launched using Slurm and the scrontab functionality. This functionality is in progress and has not been completed or finalized/tested yet. 
+
+The file `./SBATCH_LIVEGANTT.sh` is a sample SBATCH script which should generate charts for the system it is run on for the past week. The goal of this code is to be launched weekly via scontab. 
+
+Build.sh builds and exports a container from the Dockerfile to an oci image located in the oci_images folder. 

@@ -19,7 +19,7 @@ current_date=$(date +'--start=%Y-%m-%dT00:00')
 outfile="sacct.out.$(scontrol show config | awk '/ClusterName/ {print $NF}').start=$(date +'%Y-%m-%d')T00:00.no-identifiers.txt"
 bundle="/users/vhafener/LiveGantt/oci_images/livegantt_v${livegantt_version}/rootfs"
 
-./collectSacctSB.sh  &
+exec /users/vhafener/livegantt/collectSacctSB.sh
 
 # Capture the process ID of the last background command
 pid_collect=$!
@@ -29,3 +29,5 @@ wait $pid_collect
 
 # Launch b.sh after a.sh has finished
 srun --container $bundle bash -c "python3 src/__main__.py -i/Users/vhafener/Repos/LiveGantt/${outfile} -o/Users/vhafener/Repos/LiveGantt/Charts/ -t168 -c508"
+
+
