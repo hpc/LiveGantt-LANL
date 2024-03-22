@@ -97,16 +97,37 @@ def main(argv):
     # # coloration = "project"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     #
     # # Roci
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt"
-    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 168
-    # count = 508
-    # cache = True
-    #
-    # clear_cache = False
-    coloration_set = ["power", "project","exitstate", "partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 720
+    count = 508
+    cache = True
 
+    clear_cache = False
+    coloration_set = ["power", "project","exitstate", "partition", "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    # # Roci
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 1080
+    count = 508
+    cache = True
+
+    clear_cache = False
+    coloration_set = ["power", "project", "exitstate", "partition",
+                      "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    # Roci
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 1440
+    count = 508
+    cache = True
+
+    clear_cache = False
+    coloration_set = ["power", "project", "exitstate", "partition",
+                      "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
     # Trinitite
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.trinitite.start=2024-01-01T00:00.no-identifiers.txt"
@@ -127,13 +148,10 @@ def main(argv):
     # os.remove("out.txt")
     # os.remove(inputpath)
 
-    # TODO [ ]   - Continue adding functionality and coloration schemes to LiveGantt
-    # TODO [ ]   - Respond to any relevant production requests with LiveGantt visualizations.
     # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
     # TODO [ ]   - Forward along fixed presentation version to SLUG
     # TODO [ ]    - Automate weekly WLM & PROD chart set
     # TODO [ ]    - Partition legend
-    # TODO [ ]    - Force to undo dependency chain
     # TODO [ ]    - FIX THE FULL TRANSPARENCY ISSUE
 
 
