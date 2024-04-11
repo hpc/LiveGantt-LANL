@@ -35,7 +35,7 @@ def cache_column_typing(formatted_df):
     # Loop through the specified columns and convert values to datetime objects
     for col in columns_to_convert:  # TODO I could do __converters instead on evalys.read_csv but there's not a good reason to
         formatted_df[col] = formatted_df[col].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
-    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
+    # formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].astype(int)
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
 
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
@@ -196,6 +196,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['normalized_account'] = 1 - (formatted_df['account'] / formatted_df['account'].max())
     formatted_df['username'] = formatted_df["user"]
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
+    formatted_df['partition_name'] = formatted_df['partition']
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
     formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
     formatted_df['powerFactor'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
@@ -213,36 +214,37 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['dependency'] = formatted_df['dependency'].apply(
         lambda x: x.split(".")[0]
     )
+    formatted_df['dependency_chain_head'] = formatted_df['dependency']
 
-    def find_chain_head(job_id, dependency):
-        """
-        Seek through the job dependency chain to find the head of the chain
-        :param job_id:
-        :param dependency:
-        :return:
-        """
-        # If there is no dependency, return the current JobID
-        if pd.isna(dependency) or dependency == 'nan':
-            return job_id
-        else:
-            # Recursively find the head of the dependency chain
-            next_dependency = formatted_df.loc[formatted_df['notRawJobID'] == dependency]['dependency']
-            is_empty = next_dependency.empty
-            if next_dependency.empty:
-                return job_id
-            else:
-                return find_chain_head(dependency, next_dependency.values[0])
+    # def find_chain_head(job_id, dependency):
+    #     """
+    #     Seek through the job dependency chain to find the head of the chain
+    #     :param job_id:
+    #     :param dependency:
+    #     :return:
+    #     """
+    #     # If there is no dependency, return the current JobID
+    #     if pd.isna(dependency) or dependency == 'nan':
+    #         return job_id
+    #     else:
+    #         # Recursively find the head of the dependency chain
+    #         next_dependency = formatted_df.loc[formatted_df['notRawJobID'] == dependency]['dependency']
+    #         is_empty = next_dependency.empty
+    #         if next_dependency.empty:
+    #             return job_id
+    #         else:
+    #             return find_chain_head(dependency, next_dependency.values[0])
+    #
+    # # Create the 'dependency_chain_head' column
+    # start_time_task = time.time()
+    # formatted_df['dependency_chain_head'] = formatted_df.apply(
+    #     lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
 
-    # Create the 'dependency_chain_head' column
-    start_time_task = time.time()
-    formatted_df['dependency_chain_head'] = formatted_df.apply(
-        lambda row: find_chain_head(row['notRawJobID'], row['dependency']), axis=1)
+    # formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].apply(lambda x: int(x) if isinstance(x, int) else int(x.split('+')[0]) if '+' in x else int(x))
 
-    formatted_df['dependency_chain_head'] = formatted_df['dependency_chain_head'].apply(lambda x: int(x) if isinstance(x, int) else int(x.split('+')[0]) if '+' in x else int(x))
-
-    end_time_task = time.time()
-    duration_task = end_time_task - start_time_task
-    print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
+    # end_time_task = time.time()
+    # duration_task = end_time_task - start_time_task
+    # print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
     formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 
     # Reorder the columns to match the specified order
@@ -253,6 +255,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'requested_number_of_resources',
         'requested_time',
         'partition',
+        'partition_name',
         'success',
         'starting_time',
         'execution_time',
