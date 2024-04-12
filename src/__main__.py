@@ -74,7 +74,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=False
-    coloration_set = ["partition"]
+    coloration_set = ["project"]
     # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # Snow
