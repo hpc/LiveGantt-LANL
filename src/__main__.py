@@ -74,7 +74,8 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=False
-    coloration_set = ["project"]
+    # Fix issue with power "An error occurred: 'alpha' must be between 0 and 1, inclusive"
+    coloration_set = ["power"]
     # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # Snow
@@ -85,7 +86,7 @@ def main(argv):
     cache = True
     clear_cache = True
     projects_in_legend=True
-    coloration_set = ["partition"]
+    coloration_set = ["power"]
     # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
     # #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
@@ -97,7 +98,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=False
-    coloration = "partition"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration = "power"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     #
     # # Roci
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
@@ -107,7 +108,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=True
-    coloration_set = ["partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["power"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # # Roci
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
@@ -121,16 +122,15 @@ def main(argv):
     #                   "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Roci
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
-    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 1440
-    # count = 508
-    # cache = True
-    #
-    # clear_cache = False
-    # coloration_set = ["power", "project", "exitstate", "partition",
-    #                   "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 1440
+    count = 508
+    cache = True
+    projects_in_legend = False
+    clear_cache = False
+    coloration_set = ["power"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
     # Trinitite
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.trinitite.start=2024-01-01T00:00.no-identifiers.txt"
@@ -140,7 +140,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=True
-    coloration_set = ["partition"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["power"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
 
@@ -155,7 +155,6 @@ def main(argv):
     # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
     # TODO [ ]   - Forward along fixed presentation version to SLUG
     # TODO [ ]    - Automate weekly WLM & PROD chart set
-    # TODO [ ]    - Partition legend
     # TODO [ ]    - FIX THE FULL TRANSPARENCY ISSUE
 
 
