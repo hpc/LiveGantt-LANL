@@ -199,7 +199,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['partition_name'] = formatted_df['partition']
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
     formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
-    formatted_df['powerFactor'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
+    formatted_df['PowerPerNodeHour'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -211,6 +211,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
 
     # Convert the 'Dependency' column to string to handle NaN values
     formatted_df['dependency'] = formatted_df['dependency'].astype(str)
+    formatted_df['jobID'] = formatted_df['jobID'].astype(int)
     formatted_df['dependency'] = formatted_df['dependency'].apply(
         lambda x: x.split(".")[0]
     )
@@ -274,7 +275,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'user',
         'username',
         'flags',
-        'powerFactor',
+        'PowerPerNodeHour',
         'consumedEnergy',
     ]]
 
