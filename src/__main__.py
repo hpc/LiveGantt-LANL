@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pandas
 import pandas as pd
 import sanitization
+import seaborn as sns
 from evalys.jobset import JobSet
 
 from evalys.utils import cut_workload
@@ -69,13 +70,13 @@ def main(argv):
     # Chicoma
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 168
+    # timeframe = 720
     # count = 1792
-    # cache = True
+    # cache = False
     # clear_cache = False
     # projects_in_legend=False
     # # Fix issue with power "An error occurred: 'alpha' must be between 0 and 1, inclusive"
-    # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]
+    # coloration_set = ["wait", "exitstate"]
     # # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # Snow
@@ -129,7 +130,7 @@ def main(argv):
     cache = False
     projects_in_legend = True
     clear_cache = False
-    coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
     # Trinitite
@@ -152,10 +153,7 @@ def main(argv):
     # os.remove("out.txt")
     # os.remove(inputpath)
 
-    # TODO [ ]   - Consider implementation with BrightView, or design a web user interface that can be run locally on monitoring systems.
-    # TODO [ ]   - Forward along fixed presentation version to SLUG
-    # TODO [ ]    - Automate weekly WLM & PROD chart set
-    # TODO [ ]    - FIX THE FULL TRANSPARENCY ISSUE
+
 
 
 
@@ -216,7 +214,10 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
 
         plt.xlabel("Time")
         plt.ylabel("Node ID")
+        
         plt.tight_layout()
+        if coloration == "exitstate":
+            sns.rugplot(data=totalDf[totalDf['failedNode'].notnull()], x='starting_time', y="failedNode", color="r")
 
         plt.savefig(
             outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
@@ -237,7 +238,6 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
             windowFinishTime=chartEndTime,
             with_details=False,
         )
-
         plt.savefig(
             outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
                 '%Y-%m-%dT%H:%M:%S') + "_" + "utilization" + ".png",

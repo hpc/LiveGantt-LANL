@@ -150,6 +150,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'User': 'user',
         'Flags' : 'flags',
         'ConsumedEnergyRaw' : 'consumedEnergy',
+        'FailedNode' : 'failedNode',
     })
 
     # Convert times into the preferred time format
@@ -187,6 +188,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     # Normalize the column to range from 0 to 1
     formatted_df['normalized_eligible_wait'] = 1 - (
                 formatted_df['eligible_wait_seconds'] / formatted_df['eligible_wait_seconds'].max())
+    formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait']*100
+    formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait'].apply(lambda x: int(x))
 
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
@@ -200,6 +203,9 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
     formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
     formatted_df['PowerPerNodeHour'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
+    formatted_df['normalized_power_per_node_hour'] = (formatted_df['PowerPerNodeHour'] / formatted_df['PowerPerNodeHour'].max()) * 100
+    formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: int(x))
+
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -246,6 +252,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     # end_time_task = time.time()
     # duration_task = end_time_task - start_time_task
     # print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
+    formatted_df['failedNode'] = sanitizing_df['FailedNode']
+
     formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 
     # Reorder the columns to match the specified order
@@ -277,6 +285,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'flags',
         'PowerPerNodeHour',
         'consumedEnergy',
+        'failedNode',
+        'normalized_power_per_node_hour',
     ]]
 
     return formatted_df
