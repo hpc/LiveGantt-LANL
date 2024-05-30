@@ -156,3 +156,5 @@ def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projec
         PALETTE_USED = core.generate_redgreen_palette(100)
         return self._create_rectangle(job, x0, duration, height, itv, self.power_color_map, edge_color=edge_color, palette=PALETTE_USED)
 ```
+
+IN PROGRESS
