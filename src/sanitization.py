@@ -1,5 +1,5 @@
 import time
-
+import datetime
 import pandas as pd
 import datetime
 from procset import ProcSet
@@ -202,10 +202,24 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['partition_name'] = formatted_df['partition']
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
     formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
-    formatted_df['PowerPerNodeHour'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
-    formatted_df['normalized_power_per_node_hour'] = (formatted_df['PowerPerNodeHour'] / formatted_df['PowerPerNodeHour'].max()) * 100
-    formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: int(x))
 
+    # Calculations for Power per Node Hour Chart
+    formatted_df['PowerPerNodeHour'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
+    formatted_df['normalized_power_per_node_hour'] = formatted_df['PowerPerNodeHour']
+    if formatted_df['PowerPerNodeHour'].unique().size>2:
+        formatted_df['normalized_power_per_node_hour'] = (formatted_df['PowerPerNodeHour'] / formatted_df['PowerPerNodeHour'].max()) * 100
+        formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: int(x))
+    
+
+    # Calculations for wasted time chart
+    formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda x:"0-"+x if not "-" in x else x)
+    formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda s: datetime.timedelta(days=int(s.split('-')[0]), hours=int(s.split('-')[1].split(':')[0]), minutes=int(s.split('-')[1].split(':')[1]), seconds=int(s.split('-')[1].split(':')[2])))
+    formatted_df['wasted_time'] = formatted_df['Timelimit'] - formatted_df['execution_time']
+    formatted_df['wasted_time'] = formatted_df['wasted_time'].apply(lambda x: 0 if x < datetime.timedelta(0) else x)
+    formatted_df['wasted_time'] = formatted_df['wasted_time'].apply(lambda x: x.total_seconds() if x != 0 else 0)
+    formatted_df['normalized_wasted_time'] = formatted_df['wasted_time'] / formatted_df['wasted_time'].max()
+    formatted_df['normalized_wasted_time'] = formatted_df['normalized_wasted_time']*100
+    formatted_df['normalized_wasted_time'] = formatted_df["normalized_wasted_time"].apply(lambda x: int(x))
 
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
 
@@ -287,6 +301,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'consumedEnergy',
         'failedNode',
         'normalized_power_per_node_hour',
+        'normalized_wasted_time',
     ]]
 
     return formatted_df
