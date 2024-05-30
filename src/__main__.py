@@ -70,7 +70,7 @@ def main(argv):
     # Chicoma
     inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
     outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 140
+    timeframe = 164
     count = 1792
     cache = True
     clear_cache = False

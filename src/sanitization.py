@@ -168,32 +168,32 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
             "i", "").replace("d", "").replace("|", " ")
     )
 
-    # formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
-    #     lambda x: x.strip("fg[]snid").replace("|", " "))
-    # formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(
-    #     lambda x: x.strip("[]"))
+
     # Apply the strip_leading_zeros function to the 'allocated resources' column
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(strip_leading_zeroes)
+
     # Apply the string_to_procset function to the allocated_resources column
     formatted_df['allocated_resources'] = formatted_df['allocated_resources'].apply(string_to_procset)
+
     # Set default values for some columns
     formatted_df['workload_name'] = 'w0'
+
     # Calculate waiting, execution, requested, turnaround, and stretch times
     formatted_df['execution_time'] = formatted_df['finish_time'] - formatted_df['starting_time']
     formatted_df['waiting_time'] = formatted_df['starting_time'] - formatted_df['submission_time']
     formatted_df['requested_time'] = formatted_df['execution_time']
     formatted_df['eligible_wait'] = formatted_df['starting_time'] - formatted_df['eligible']
     formatted_df['eligible_wait_seconds'] = formatted_df['eligible_wait'].dt.total_seconds()
-
-    # Normalize the column to range from 0 to 1
     formatted_df['normalized_eligible_wait'] = 1 - (
                 formatted_df['eligible_wait_seconds'] / formatted_df['eligible_wait_seconds'].max())
     formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait']*100
     formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait'].apply(lambda x: int(x))
-
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
+    formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
 
+
+    # Format the account, user, and partition columns
     formatted_df['account_name'] = formatted_df['account']
     formatted_df['account'] = pd.factorize(formatted_df['account'])[0]
     formatted_df['normalized_account'] = 1 - (formatted_df['account'] / formatted_df['account'].max())
@@ -201,7 +201,6 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['user'] = pd.factorize(formatted_df['user'])[0]
     formatted_df['partition_name'] = formatted_df['partition']
     formatted_df['partition'] = pd.factorize(formatted_df['partition'])[0]
-    formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
 
     # Calculations for Power per Node Hour Chart
     formatted_df['PowerPerNodeHour'] = formatted_df['consumedEnergy']/(formatted_df['requested_number_of_resources']*formatted_df['execution_time_seconds']) # TODO Does this work out to a unit of energy per node hour?
@@ -221,8 +220,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['normalized_wasted_time'] = formatted_df['normalized_wasted_time']*100
     formatted_df['normalized_wasted_time'] = formatted_df["normalized_wasted_time"].apply(lambda x: int(x))
 
+    # Calculate Dependency chains
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
-
     # If you want to convert the 'Dependency' column to numeric type
     formatted_df['dependency'] = pd.to_numeric(formatted_df['dependency'], errors='coerce')
 
