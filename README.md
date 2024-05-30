@@ -49,3 +49,110 @@ LiveGantt can also be launched using Slurm and the scrontab functionality. This 
 The file `./SBATCH_LIVEGANTT.sh` is a sample SBATCH script which should generate charts for the system it is run on for the past week. The goal of this code is to be launched weekly via scontab. 
 
 Build.sh builds and exports a container from the Dockerfile to an oci image located in the oci_images folder. 
+
+## Adding a New Data Field From Slurm
+1. Add field to the FIELDS line of collectSacctDB.sh. Ensure that field length is such that data does not get cropped short.
+2. Add field to sanitization.py. The DB file created through collectSacctDB.sh is imported to sanitizing_df, then has a number of operations done to it, then is moved to formatted_df. 
+3. Usually you will have to do some formatting on the data for it to work smoothly. Sanitization.py contains many examples of ways to apply different formattings to data to make it work better.
+4. The last line of sanitization.py controls which fields are then returned back to the main program after sanitization. Ensure that your field is added here.
+## Adding a New Coloration Method
+### Components of a Coloration Method
+The following section steps through the places where code must be added in order to add a new coloration method, ordered in the order in which they are called during program execution. 
+#### Column Definitions
+By default, Evalys will include the columns below in the dataframes that are used to create a chart. This is used to minimize the amount of data that is being passed through steps that can be run thousands of times when plotting a chart. If you need additional columns for your coloration method, you'll have to define it manually.
+
+```
+COLUMNS = (
+        "jobID",
+        "allocated_resources",
+        "execution_time",
+        "finish_time",
+        "starting_time",
+        "submission_time",
+        "purpose",
+    )
+```
+
+The first element of adding a new coloration method is defining a column_mapping within the buildDf function, located in the Evalys repo, at evalys/viso/gantt.py. Within the definition for the column_mapping dictionary, add another line, following the existing format. Here's a breakdown of a sample new line:
+```
+"newmethod": self.COLUMNS + ("newdatapoint",),
+```
+Adding this line to the end of the dictionary will create a mapping between the coloration method "newmethod", and will append the column "newdatapoint" to that pre-set list of columns. You can define as many additional columns as you want. 
+#### Coloration Middleman
+The coloration middleman is a function that provides the _plot_job function with the function that will be used to colorize the job rectangles. It uses multiple dictionaries to match the provided coloration method and edge coloration method against a set of defined functions that provide the coloration method for each of those methods. 
+
+To add a new method, add a line to the end of the coloration_methods dictionary, located in the Evalys repo at evalys/visu/gantt, within the GanttVisualization class definition, in the _coloration_middleman function. Below is an example of how this could look for our new method:
+
+```
+"newmethod": self._return_newmethod_rectangle,
+```
+#### Returning a Colorized Rectangle
+Next you will need to define a method that returns a rectangle that has been colorized based on some criteria. Here's where there's a number of different ways to implement this. I'll provide several examples from the codebase to illustrate different ways of doing this. 
+
+###### Default
+By default, Evalys colorizes jobs using a round robin method that results in a roughly random coloration of jobs, with decent enough contrast between adjacent jobs. This round robin coloration is called from the `self.colorer` portion of the return line. 
+```
+def _return_default_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
+                                  num_top_users=None, partition_count=None, edge_color="black"):
+        return self._create_rectangle(job, x0, duration, height, itv, self.colorer, edge_color=edge_color)
+```
+Here's a closer look at that round robin coloration function:
+```
+@staticmethod
+    def round_robin_map(job, palette):
+        """
+        :return: a color to apply to :job based on :palette
+        """
+        return palette[job["uniq_num"] % len(palette)]
+```
+This takes the job that it is provided and the palette that has been defined and returns the color to apply to the job based on the parameters. 
+
+###### Partition Rectangle
+```
+def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
+                                    num_top_users=None, partition_count=None, edge_color="black"):
+        global PALETTE_USED
+        PALETTE_USED = core.generate_palette(partition_count)
+        return self._create_rectangle(job, x0, duration, height, itv, self.partition_color_map,
+                                      alpha=job["normalized_account"], edge_color=edge_color,
+                                      palette=PALETTE_USED)
+```
+```
+ def _return_success_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
+                                  num_top_users=None, partition_count=None, edge_color="black"):
+        edge_color="black"
+        if "COMPLETED" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#35F500", facecolor="#35F500",
+                                          edge_color=edge_color)
+
+        elif "TIMEOUT" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#f6acc9", facecolor="#f6acc9",
+                                          edge_color=edge_color)
+
+        elif "CANCELLED" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#FF8604", facecolor="#FF8604",
+                                          edge_color=edge_color)
+
+        elif "FAILED" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#FF0000", facecolor="#FF0000",
+                                          edge_color=edge_color)
+
+        elif "NODE_FAIL" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#FFF700", facecolor="#FFF000",
+                                          edge_color=edge_color)
+
+        elif "RUNNING" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#AE00FF", facecolor="#AE00FF",
+                                          edge_color=edge_color)
+
+        elif "OUT_OF_MEMORY" in job["success"]:
+            return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#0019FF", facecolor="#0019FF",
+                                          edge_color=edge_color)
+```
+```
+ def _return_power_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
+                               num_top_users=None, partition_count=None, edge_color="black"):
+        global PALETTE_USED
+        PALETTE_USED = core.generate_redgreen_palette(100)
+        return self._create_rectangle(job, x0, duration, height, itv, self.power_color_map, edge_color=edge_color, palette=PALETTE_USED)
+```

@@ -17,7 +17,7 @@ from evalys.visu.gantt import plot_gantt_df
 from procset import ProcInt
 
 # Set the font size to prevent overlap of datestamps
-plt.rcParams.update({'font.size': 6})
+plt.rcParams.update({"font.size": 6})
 
 
 def main(argv):
@@ -47,7 +47,8 @@ def main(argv):
     # If options provided are incorrect, fail out
     except getopt.GetoptError:
         print(
-            "Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -c <Node count>")
+            "Option error! Please see usage below:\npython3 -m livegantt -i <inputpath> -t <timeframe> -c <Node count>"
+        )
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-i":
@@ -74,10 +75,21 @@ def main(argv):
     count = 1792
     cache = True
     clear_cache = False
-    projects_in_legend=False
-    coloration_set = ["default", "wait", "partition", "sched", "power","wasted_time"]
+    projects_in_legend = False
+    coloration_set = ["default", "wait", "partition", "sched", "power", "wasted_time"]
     # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
+    vizset.append(
+        (
+            inputpath,
+            outputpath,
+            timeframe,
+            count,
+            cache,
+            clear_cache,
+            coloration_set,
+            projects_in_legend,
+        )
+    )
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2024-01-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
@@ -143,7 +155,6 @@ def main(argv):
     # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
-
     # Produce the chart
     for set in vizset:
         ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7])
@@ -153,11 +164,16 @@ def main(argv):
     # os.remove(inputpath)
 
 
-
-
-
-def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, clear_cache=False,
-                    coloration_set=["default"], project_in_legend=True):
+def ganttLastNHours(
+    outJobsCSV,
+    outputpath,
+    hours,
+    clusterSize,
+    cache=False,
+    clear_cache=False,
+    coloration_set=["default"],
+    project_in_legend=True,
+):
     """
     Plots a gantt chart for the last N hours
     :param hours: the number of hours from the most recent time entry to the first included time entry
@@ -166,12 +182,26 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     """
     clusterName = outJobsCSV.split(".")[2]
     if outputpath is None:
-        outputpath = "Charts_for_" + clusterName + "_generated_" + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        outputpath = (
+            "Charts_for_"
+            + clusterName
+            + "_generated_"
+            + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        )
     else:
-        outputpath = outputpath+ "/" + "Charts_for_" + clusterName + "_generated_" + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        outputpath = (
+            outputpath
+            + "/"
+            + "Charts_for_"
+            + clusterName
+            + "_generated_"
+            + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        )
     check_output_dir_validity(outputpath)
     # Print some basic information on the operating parameters
-    chartEndTime, chartStartTime = initialization(clusterName, clusterSize, hours, outJobsCSV)
+    chartEndTime, chartStartTime = initialization(
+        clusterName, clusterSize, hours, outJobsCSV
+    )
 
     # Sanitize the data from the inputfile
     df = check_cache_and_return_df(cache, clear_cache, outJobsCSV)
@@ -183,28 +213,56 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf)
 
-    edgeMethod="default"
+    edgeMethod = "default"
 
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     partition_count = totalDf["partition"].unique().size
 
     for coloration in coloration_set:
-        terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count)
+        terminate_if_conditions_not_met(
+            coloration, project_count, user_count, user_top_20_count
+        )
         if clusterName != "chicoma" and clusterName != "rocinante":
-            plot_gantt_df(totalDf, ProcInt(0, clusterSize - 1), chartStartTime, chartEndTime,
-                          title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                              '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                          colorationMethod=coloration, num_projects=project_count, num_users=user_count,
-                          num_top_users=user_top_20_count,
-                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count, edgeMethod=edgeMethod, project_in_legend=project_in_legend)
+            plot_gantt_df(
+                totalDf,
+                ProcInt(0, clusterSize - 1),
+                chartStartTime,
+                chartEndTime,
+                title="Schedule for cluster "
+                + clusterName
+                + " at "
+                + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
+                dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                colorationMethod=coloration,
+                num_projects=project_count,
+                num_users=user_count,
+                num_top_users=user_top_20_count,
+                resvSet=parse_reservation_set(totalDf),
+                partition_count=partition_count,
+                edgeMethod=edgeMethod,
+                project_in_legend=project_in_legend,
+            )
         else:
-            plot_gantt_df(totalDf, ProcInt(1000, clusterSize + 1000 - 1), chartStartTime, chartEndTime,
-                          title="Schedule for cluster " + clusterName + " at " + chartEndTime.strftime(
-                              '%H:%M:%S on %d %B, %Y'), dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                          colorationMethod=coloration, num_projects=project_count, num_users=user_count,
-                          num_top_users=user_top_20_count,
-                          resvSet=parse_reservation_set(totalDf), partition_count=partition_count, edgeMethod=edgeMethod, project_in_legend=project_in_legend)
+            plot_gantt_df(
+                totalDf,
+                ProcInt(1000, clusterSize + 1000 - 1),
+                chartStartTime,
+                chartEndTime,
+                title="Schedule for cluster "
+                + clusterName
+                + " at "
+                + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
+                dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                colorationMethod=coloration,
+                num_projects=project_count,
+                num_users=user_count,
+                num_top_users=user_top_20_count,
+                resvSet=parse_reservation_set(totalDf),
+                partition_count=partition_count,
+                edgeMethod=edgeMethod,
+                project_in_legend=project_in_legend,
+            )
         # Save the figure out to a name based on the end time
         if coloration == "partition":
             dpi = 800
@@ -213,19 +271,30 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
 
         plt.xlabel("Time")
         plt.ylabel("Node ID")
-        
+
         plt.tight_layout()
         if coloration == "exitstate":
-            sns.rugplot(data=totalDf[totalDf['failedNode'].notnull()], x='starting_time', y="failedNode", color="r")
+            sns.rugplot(
+                data=totalDf[totalDf["failedNode"].notnull()],
+                x="starting_time",
+                y="failedNode",
+                color="r",
+            )
 
         plt.savefig(
-            outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
-                '%Y-%m-%dT%H:%M:%S') + "_" + coloration + ".png",
+            outputpath
+            + "/"
+            + chartStartTime.strftime("%Y-%m-%dT%H:%M:%S")
+            + "-"
+            + chartEndTime.strftime("%Y-%m-%dT%H:%M:%S")
+            + "_"
+            + coloration
+            + ".png",
             dpi=dpi,
         )
         # Close the figure
         plt.close()
-    utilization=True
+    utilization = True
     if utilization:
         for index, row in totalDf.iterrows():
             if row["purpose"] == "reservation":
@@ -238,15 +307,23 @@ def ganttLastNHours(outJobsCSV, outputpath, hours, clusterSize, cache=False, cle
             with_details=False,
         )
         plt.savefig(
-            outputpath + "/" + chartStartTime.strftime('%Y-%m-%dT%H:%M:%S') + "-" + chartEndTime.strftime(
-                '%Y-%m-%dT%H:%M:%S') + "_" + "utilization" + ".png",
+            outputpath
+            + "/"
+            + chartStartTime.strftime("%Y-%m-%dT%H:%M:%S")
+            + "-"
+            + chartEndTime.strftime("%Y-%m-%dT%H:%M:%S")
+            + "_"
+            + "utilization"
+            + ".png",
             dpi=dpi,
         )
         # Close the figure
         plt.close()
 
 
-def terminate_if_conditions_not_met(coloration, project_count, user_count, user_top_20_count):
+def terminate_if_conditions_not_met(
+    coloration, project_count, user_count, user_top_20_count
+):
     """
     This function checks that the requisite parameters are set for the given coloration method.
     :param coloration:
@@ -256,13 +333,19 @@ def terminate_if_conditions_not_met(coloration, project_count, user_count, user_
     :return:
     """
     if coloration == "project" and project_count is None:
-        print("Dataset must contain more than zero projects! Fix or change coloration parameter.")
+        print(
+            "Dataset must contain more than zero projects! Fix or change coloration parameter."
+        )
         sys.exit(2)
     elif coloration == "user" and user_count is None:
-        print("Dataset must contain more than zero users! Fix or change coloration parameter.!")
+        print(
+            "Dataset must contain more than zero users! Fix or change coloration parameter.!"
+        )
         sys.exit(2)
     elif coloration == "user_top_20" and user_top_20_count is None:
-        print("Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!")
+        print(
+            "Dataset must contain more than zero top_20_users! Fix or change coloration parameter.!"
+        )
         sys.exit(2)
 
 
@@ -323,7 +406,9 @@ def check_cache_and_return_df(cache, clear_cache, outJobsCSV):
         input_file_hash = calculate_sha256(outJobsCSV)
         if os.path.isfile(cache_name):
             print("Cache exists! Hashing ...")
-            cache_hash = calculate_sha256(cache_name.removesuffix("_sanitized_cache.csv"))
+            cache_hash = calculate_sha256(
+                cache_name.removesuffix("_sanitized_cache.csv")
+            )
             if input_file_hash == cache_hash:
                 print("Cache valid! Loading df from cache...")
                 start_time_task = time.time()
@@ -344,7 +429,6 @@ def check_cache_and_return_df(cache, clear_cache, outJobsCSV):
             df.to_csv(cache_name)
             print("Wrote new cache!")
 
-
     else:
         df = sanitization.sanitizeFile(outJobsCSV)
     return df
@@ -360,11 +444,11 @@ def parse_start_and_end(outJobsCSV):
         header = f.readlines()[0].split(",")
         indices = []
         for i, elem in enumerate(header):
-            if 'Start' in elem:
+            if "Start" in elem:
                 indices.append(i)
         startColIndex = indices[0]
         for i, elem in enumerate(header):
-            if 'End' in elem:
+            if "End" in elem:
                 indices.append(i)
         endColIndex = indices[1]
     return endColIndex, startColIndex
@@ -390,14 +474,18 @@ def calculate_top_N(formatted_df):
     :return:
     """
     # Calculate the 30% most frequent usernames
-    top_usernames = formatted_df['username'].value_counts().nlargest(20).index
+    top_usernames = formatted_df["username"].value_counts().nlargest(20).index
     # Create a mapping of usernames to unique user IDs
-    username_to_user_id = {username: i for i, username in enumerate(top_usernames, start=1)}
+    username_to_user_id = {
+        username: i for i, username in enumerate(top_usernames, start=1)
+    }
     # Apply the mapping to create a new 'user_id' column
-    formatted_df['user_id'] = formatted_df['username'].map(username_to_user_id).fillna(0)
+    formatted_df["user_id"] = (
+        formatted_df["username"].map(username_to_user_id).fillna(0)
+    )
     # If there are any usernames not in the top 30%, set their 'user_id' to '0'
-    formatted_df.loc[~formatted_df['username'].isin(top_usernames), 'user_id'] = 0
-    formatted_df['user_id'] = formatted_df['user_id'].astype(int)
+    formatted_df.loc[~formatted_df["username"].isin(top_usernames), "user_id"] = 0
+    formatted_df["user_id"] = formatted_df["user_id"].astype(int)
     user_top_N_count = formatted_df["user_id"].unique().size
     return formatted_df, user_top_N_count
 
@@ -409,7 +497,7 @@ def calculate_sha256(filename):
     :return: Hash
     """
     sha256_hash = hashlib.sha256()
-    sha256_hash.update(filename.encode('utf-8'))
+    sha256_hash.update(filename.encode("utf-8"))
     return sha256_hash.hexdigest()
 
 
@@ -424,20 +512,27 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
     """
     with open(outJobsCSV) as f:
         last_line = f.readlines()[index].split(
-            ",")  # This could be done by seeking backwards from the end of the file as a binary, but for now this
+            ","
+        )  # This could be done by seeking backwards from the end of the file as a binary, but for now this
         # seems to take under 10 milliseconds, so I don't care about that level of optimization yet
 
         # If the last job hasn't ended yet
         if last_line[endColIndex] == "Unknown":
             # But if that job has started, return a time value
             if last_line[startColIndex] != "Unknown":
-                return datetime.datetime.strptime(last_line[startColIndex], '%Y-%m-%dT%H:%M:%S')
+                return datetime.datetime.strptime(
+                    last_line[startColIndex], "%Y-%m-%dT%H:%M:%S"
+                )
             # But if it hasn't started yet, recurse to the previous job
             else:
-                return seekLastLine(outJobsCSV, endColIndex, startColIndex, index=index - 1)
+                return seekLastLine(
+                    outJobsCSV, endColIndex, startColIndex, index=index - 1
+                )
         # If the last job has ended, return the time value
         else:
-            return datetime.datetime.strptime(last_line[endColIndex], '%Y-%m-%dT%H:%M:%S')
+            return datetime.datetime.strptime(
+                last_line[endColIndex], "%Y-%m-%dT%H:%M:%S"
+            )
 
 
 def setDimensions(nodeCount=0, hours=24):
@@ -461,5 +556,5 @@ def setDimensions(nodeCount=0, hours=24):
         return hours * 0.5, 35
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv[1:])

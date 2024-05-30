@@ -184,8 +184,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['requested_time'] = formatted_df['execution_time']
     formatted_df['eligible_wait'] = formatted_df['starting_time'] - formatted_df['eligible']
     formatted_df['eligible_wait_seconds'] = formatted_df['eligible_wait'].dt.total_seconds()
-    formatted_df['normalized_eligible_wait'] = 1 - (
-                formatted_df['eligible_wait_seconds'] / formatted_df['eligible_wait_seconds'].max())
+    formatted_df['normalized_eligible_wait'] = 1 - ( formatted_df['eligible_wait_seconds'] / formatted_df['eligible_wait_seconds'].max())
     formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait']*100
     formatted_df['normalized_eligible_wait'] = formatted_df['normalized_eligible_wait'].apply(lambda x: int(x))
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
