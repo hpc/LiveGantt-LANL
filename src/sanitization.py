@@ -2,6 +2,7 @@ import time
 import datetime
 import pandas as pd
 import datetime
+import math
 from procset import ProcSet
 
 
@@ -206,6 +207,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['normalized_power_per_node_hour'] = formatted_df['PowerPerNodeHour']
     if formatted_df['PowerPerNodeHour'].unique().size>2:
         formatted_df['normalized_power_per_node_hour'] = (formatted_df['PowerPerNodeHour'] / formatted_df['PowerPerNodeHour'].max()) * 100
+        formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: 0 if math.isnan(x) else x)
         formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: int(x))
     
 
