@@ -122,16 +122,17 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     print("Formatting Reservation Strings")
     # Define the replacement rules using regular expressions
     replacement_rules = {
-        'DST': 'reservation',
-        'DAT.*': 'reservation',
-        'PreventMaint$': 'reservation',
+        # 'DST': 'reservation',
+        # 'DAT.*': 'reservation',
+        # 'PreventMaint$': 'reservation',
+        'debug': 'job',
         None: 'job',
         '': 'job',
     }
 
     # Replace values in the "reservation" column based on the rules
     sanitizing_df[reservation] = sanitizing_df[reservation].replace(replacement_rules, regex=True)
-    sanitizing_df.loc[~sanitizing_df[reservation].isin(['reservation', 'job']), reservation] = 'job'
+    sanitizing_df.loc[~sanitizing_df[reservation].isin(['reservation', 'job', 'PreventMaint','fixnodes','GPUMaint', 'wlmtest']), reservation] = 'DAT'
 
     # Rename the columns in the incoming DF to the target names
     formatted_df = sanitizing_df.rename(columns={
@@ -217,7 +218,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['normalized_success'] = pd.factorize(formatted_df['success'])[0]
 
     # Calculations for wasted time chart
-    formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda x:"0-"+x if not "-" in x else x)
+    formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda x:"0-"+ str(x) if not "-" in str(x) else str(x))
+    formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda x: "0-00:00:00" if x=="0-nan" else x) # TODO Replace this with default timelimit
     formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda s: datetime.timedelta(days=int(s.split('-')[0]), hours=int(s.split('-')[1].split(':')[0]), minutes=int(s.split('-')[1].split(':')[1]), seconds=int(s.split('-')[1].split(':')[2])))
     formatted_df['wasted_time'] = formatted_df['Timelimit'] - formatted_df['execution_time']
     formatted_df['wasted_time'] = formatted_df['wasted_time'].apply(lambda x: 0 if x < datetime.timedelta(0) else x)
@@ -273,7 +275,7 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     # end_time_task = time.time()
     # duration_task = end_time_task - start_time_task
     # print("Spent " + str(duration_task) + " seconds seeking dependency chain.")
-    formatted_df['failedNode'] = sanitizing_df['FailedNode']
+    formatted_df['failedNode'] = sanitizing_df['FailedNode'] 
 
     formatted_df["flags"] = formatted_df["flags"].apply(lambda x: x.split("|"))
 

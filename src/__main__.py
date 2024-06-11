@@ -69,33 +69,33 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
-    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 3799
-    count = 1792
-    cache = True
-    clear_cache = True
-    projects_in_legend = False
-    coloration_set = ["default", "wait", "partition", "sched", "power", "wasted_time"]
-    # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
-    vizset.append(
-        (
-            inputpath,
-            outputpath,
-            timeframe,
-            count,
-            cache,
-            clear_cache,
-            coloration_set,
-            projects_in_legend,
-        )
-    )
+    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
+    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    # timeframe = 360
+    # count = 1792
+    # cache = True
+    # clear_cache = True
+    # projects_in_legend = False
+    # coloration_set = ["default", "wait", "partition", "sched", "power", "wasted_time"]
+    # # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
+    # vizset.append(
+    #     (
+    #         inputpath,
+    #         outputpath,
+    #         timeframe,
+    #         count,
+    #         cache,
+    #         clear_cache,
+    #         coloration_set,
+    #         projects_in_legend,
+    #     )
+    # )
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2024-01-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 168
+    # timeframe = 700
     # count = 368
-    # cache = True
+    # cache = False
     # clear_cache = False
     # projects_in_legend=True
     # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]
@@ -115,7 +115,7 @@ def main(argv):
     # # Roci
     # inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 72
+    # timeframe = 360
     # count = 508
     # cache = False
     # clear_cache = False
@@ -128,28 +128,28 @@ def main(argv):
     # timeframe = 1080
     # count = 508
     # cache = True
-    #
+    
     # clear_cache = False
     # coloration_set = ["power", "project", "exitstate", "partition",
     #                   "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Roci
-    # inputpath = "sacct.out.rocinante.start=2023-11-01T00_00.no-identifiers.txt"
-    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 4851
-    # count = 508
-    # cache = False
-    # projects_in_legend = True
-    # clear_cache = False
-    # coloration_set = ["wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
+    inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 1000
+    count = 508
+    cache = False
+    projects_in_legend = True
+    clear_cache = False
+    coloration_set = ["wait", "default", "project", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
     # Trinitite
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.trinitite.start=2024-01-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
     # timeframe = 800
     # count = 200
-    # cache = True
+    # cache = False
     # clear_cache = False
     # projects_in_legend=True
     # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
@@ -462,7 +462,7 @@ def parse_reservation_set(df):
     """
     reservation_set = []
     for index, row in df.iterrows():
-        if row["purpose"] == "reservation":
+        if row["purpose"] != "job":
             reservation_set.append(row)
     return reservation_set
 
