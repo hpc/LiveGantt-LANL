@@ -191,6 +191,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['turnaround_time'] = formatted_df['finish_time'] - formatted_df['submission_time']
     formatted_df['stretch'] = formatted_df['turnaround_time'] / formatted_df['requested_time']
     formatted_df['execution_time_seconds'] = formatted_df['execution_time'].apply(lambda x: x.total_seconds())
+    formatted_df['requested_time_seconds'] = formatted_df['requested_time'].apply(lambda x: x.total_seconds())
+
 
 
     # Format the account, user, and partition columns
@@ -211,6 +213,9 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         formatted_df['normalized_power_per_node_hour'] = formatted_df['normalized_power_per_node_hour'].apply(lambda x: int(x))
     
 
+    # Exit state normalized
+    formatted_df['normalized_success'] = pd.factorize(formatted_df['success'])[0]
+
     # Calculations for wasted time chart
     formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda x:"0-"+x if not "-" in x else x)
     formatted_df['Timelimit'] = formatted_df['Timelimit'].apply(lambda s: datetime.timedelta(days=int(s.split('-')[0]), hours=int(s.split('-')[1].split(':')[0]), minutes=int(s.split('-')[1].split(':')[1]), seconds=int(s.split('-')[1].split(':')[2])))
@@ -220,6 +225,8 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
     formatted_df['normalized_wasted_time'] = formatted_df['wasted_time'] / formatted_df['wasted_time'].max()
     formatted_df['normalized_wasted_time'] = formatted_df['normalized_wasted_time']*100
     formatted_df['normalized_wasted_time'] = formatted_df["normalized_wasted_time"].apply(lambda x: int(x))
+    formatted_df['launch_word'] = formatted_df['submitline'].apply(lambda x: x.split()[0])
+    formatted_df['normalized_launch_word'] = pd.factorize(formatted_df['launch_word'])[0]
 
     # Calculate Dependency chains
     formatted_df['dependency'] = formatted_df['submitline'].str.extract(r'(?:afterany|afterok):(\d+)', expand=False)
@@ -302,6 +309,11 @@ def sanitizeFile(inputfile):  # TODO I should only run dependency chain seeking 
         'failedNode',
         'normalized_power_per_node_hour',
         'normalized_wasted_time',
+        'launch_word',
+        'normalized_launch_word',
+        'execution_time_seconds',
+        'requested_time_seconds',
+        'normalized_success',
     ]]
 
     return formatted_df

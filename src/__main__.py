@@ -69,27 +69,27 @@ def main(argv):
     # Debug options below
 
     # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
-    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 164
-    # count = 1792
-    # cache = True
-    # clear_cache = False
-    # projects_in_legend = False
-    # coloration_set = ["default", "wait", "partition", "sched", "power", "wasted_time"]
-    # # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
-    # vizset.append(
-    #     (
-    #         inputpath,
-    #         outputpath,
-    #         timeframe,
-    #         count,
-    #         cache,
-    #         clear_cache,
-    #         coloration_set,
-    #         projects_in_legend,
-    #     )
-    # )
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 3799
+    count = 1792
+    cache = True
+    clear_cache = True
+    projects_in_legend = False
+    coloration_set = ["default", "wait", "partition", "sched", "power", "wasted_time"]
+    # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
+    vizset.append(
+        (
+            inputpath,
+            outputpath,
+            timeframe,
+            count,
+            cache,
+            clear_cache,
+            coloration_set,
+            projects_in_legend,
+        )
+    )
     # Snow
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.snow.start=2024-01-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
@@ -113,15 +113,15 @@ def main(argv):
     # coloration = "power"  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     #
     # # Roci
-    inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
-    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 72
-    count = 508
-    cache = False
-    clear_cache = False
-    projects_in_legend=True
-    coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
+    # inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    # timeframe = 72
+    # count = 508
+    # cache = False
+    # clear_cache = False
+    # projects_in_legend=True
+    # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # # Roci
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
     # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
