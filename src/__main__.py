@@ -134,9 +134,9 @@ def main(argv):
     #                   "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
     # Roci
-    inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    inputpath = "sacct.out.rocinante.start=2024-06-11T00:00.no-identifiers.txt"
     outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 1000
+    timeframe = 48
     count = 508
     cache = False
     projects_in_legend = True
