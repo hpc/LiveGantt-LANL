@@ -10,6 +10,7 @@ import pandas
 import pandas as pd
 import sanitization
 import seaborn as sns
+import traceback
 from evalys.jobset import JobSet
 
 from evalys.utils import cut_workload
@@ -76,7 +77,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend = False
-    coloration_set = []
+    coloration_set = ["default", "power", "wait", "partition", "exitstate"]
     # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
     vizset.append(
         (
@@ -98,7 +99,7 @@ def main(argv):
     # cache = False
     # clear_cache = False
     # projects_in_legend=True
-    # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]
+    # coloration_set = ["default", "power", "wait", "partition", "exitstate"]
     # # # coloration_set = ["default", "project", "user", "user_top_20", "sched", "wait", "partition",
     # # #                   "dependency"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", "partition", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
@@ -120,7 +121,7 @@ def main(argv):
     cache = True
     clear_cache = False
     projects_in_legend=True
-    coloration_set = []  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    coloration_set = ["default", "power", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
     # # Roci
     # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
@@ -152,12 +153,13 @@ def main(argv):
     # cache = False
     # clear_cache = False
     # projects_in_legend=True
-    # coloration_set = ["default", "power", "sched", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    # coloration_set = ["default", "power", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
     # vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend))
 
     # Produce the chart
     for set in vizset:
         ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7])
+        
 
     # Cleanup workdir
     # os.remove("out.txt")
@@ -223,46 +225,53 @@ def ganttLastNHours(
         terminate_if_conditions_not_met(
             coloration, project_count, user_count, user_top_20_count
         )
-        if clusterName != "chicoma" and clusterName != "rocinante":
-            plot_gantt_df(
-                totalDf,
-                ProcInt(0, clusterSize - 1),
-                chartStartTime,
-                chartEndTime,
-                title="Schedule for cluster "
-                + clusterName
-                + " at "
-                + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
-                dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                colorationMethod=coloration,
-                num_projects=project_count,
-                num_users=user_count,
-                num_top_users=user_top_20_count,
-                resvSet=parse_reservation_set(totalDf),
-                partition_count=partition_count,
-                edgeMethod=edgeMethod,
-                project_in_legend=project_in_legend,
-            )
-        else:
-            plot_gantt_df(
-                totalDf,
-                ProcInt(1000, clusterSize + 1000 - 1),
-                chartStartTime,
-                chartEndTime,
-                title="Schedule for cluster "
-                + clusterName
-                + " at "
-                + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
-                dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
-                colorationMethod=coloration,
-                num_projects=project_count,
-                num_users=user_count,
-                num_top_users=user_top_20_count,
-                resvSet=parse_reservation_set(totalDf),
-                partition_count=partition_count,
-                edgeMethod=edgeMethod,
-                project_in_legend=project_in_legend,
-            )
+        print("Starting chart generation for: "+clusterName +" with coloration method: "+coloration)
+        try:
+            if clusterName != "chicoma" and clusterName != "rocinante":
+                plot_gantt_df(
+                    totalDf,
+                    ProcInt(0, clusterSize - 1),
+                    chartStartTime,
+                    chartEndTime,
+                    title="Schedule for cluster "
+                    + clusterName
+                    + " at "
+                    + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
+                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                    colorationMethod=coloration,
+                    num_projects=project_count,
+                    num_users=user_count,
+                    num_top_users=user_top_20_count,
+                    resvSet=parse_reservation_set(totalDf),
+                    partition_count=partition_count,
+                    edgeMethod=edgeMethod,
+                    project_in_legend=project_in_legend,
+                )
+            else:
+                plot_gantt_df(
+                    totalDf,
+                    ProcInt(1000, clusterSize + 1000 - 1),
+                    chartStartTime,
+                    chartEndTime,
+                    title="Schedule for cluster "
+                    + clusterName
+                    + " at "
+                    + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
+                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                    colorationMethod=coloration,
+                    num_projects=project_count,
+                    num_users=user_count,
+                    num_top_users=user_top_20_count,
+                    resvSet=parse_reservation_set(totalDf),
+                    partition_count=partition_count,
+                    edgeMethod=edgeMethod,
+                    project_in_legend=project_in_legend,
+                )
+        except:
+            print("\033[31mError generating chart for the following spec: "+clusterName+"-"+coloration+"\033[0m")
+            print("\n\n Exception:\n")
+            traceback.print_exc()
+            pass 
         # Save the figure out to a name based on the end time
         if coloration == "partition":
             dpi = 800
@@ -281,17 +290,23 @@ def ganttLastNHours(
                 color="r",
             )
 
-        plt.savefig(
-            outputpath
-            + "/"
-            + chartStartTime.strftime("%Y-%m-%dT%H:%M:%S")
-            + "-"
-            + chartEndTime.strftime("%Y-%m-%dT%H:%M:%S")
-            + "_"
-            + coloration
-            + ".png",
-            dpi=dpi,
-        )
+        try:
+            plt.savefig(
+                outputpath
+                + "/"
+                + chartStartTime.strftime("%Y-%m-%dT%H:%M:%S")
+                + "-"
+                + chartEndTime.strftime("%Y-%m-%dT%H:%M:%S")
+                + "_"
+                + coloration
+                + ".png",
+                dpi=dpi,
+            )
+        except ValueError:
+            print("\033[31mError saving chart for the following coloration method- ensure your dimension settings are within acceptable bounds - " +coloration+"\033[0m")
+            traceback.print_exc()
+            continue
+
         # Close the figure
         plt.close()
     utilization = True
