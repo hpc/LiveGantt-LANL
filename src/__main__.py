@@ -92,6 +92,7 @@ def main(argv):
     #     )
     # )
     
+    # You can put as many clusters as you want here! If you add it to the vizset, it'll launch 
    
     # Produce the chart
     for set in vizset:
