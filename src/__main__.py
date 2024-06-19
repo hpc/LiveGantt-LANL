@@ -69,34 +69,48 @@ def main(argv):
 
     # Debug options below
 
-    # Chicoma
-    # inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
-    # outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    # timeframe = 360
-    # count = 1792
-    # cache = False 
-    # clear_cache = False
-    # projects_in_legend = False
-    # coloration_set = ["default", "power", "wait", "partition", "exitstate"]
-    # # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
-    # vizset.append(
-    #     (
-    #         inputpath,
-    #         outputpath,
-    #         timeframe,
-    #         count,
-    #         cache,
-    #         clear_cache,
-    #         coloration_set,
-    #         projects_in_legend,
-    #     )
-    # )
+   # Chicoma
+    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 360
+    count = 1792
+    cache = False 
+    clear_cache = False
+    projects_in_legend = False
+    utilization=False
+    coloration_set = []
+    # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
+    vizset.append(
+        (
+            inputpath,
+            outputpath,
+            timeframe,
+            count,
+            cache,
+            clear_cache,
+            coloration_set,
+            projects_in_legend,
+            utilization,
+        )
+    )
+
+    # Roci
+    inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe = 360
+    count = 508
+    cache = False
+    clear_cache = False
+    projects_in_legend=True
+    utilization=True
+    coloration_set = ["default", "power", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization))
     
     # You can put as many clusters as you want here! If you add it to the vizset, it'll launch 
    
     # Produce the chart
     for set in vizset:
-        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7])
+        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7], set[8])
         
 
     # Cleanup workdir
@@ -113,6 +127,7 @@ def ganttLastNHours(
     clear_cache=False,
     coloration_set=["default"],
     project_in_legend=True,
+    utilization=True,
 ):
     """
     Plots a gantt chart for the last N hours
@@ -247,7 +262,6 @@ def ganttLastNHours(
 
         # Close the figure
         plt.close()
-    utilization = True
     if utilization:
         for index, row in totalDf.iterrows():
             if row["purpose"] == "reservation":
