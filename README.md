@@ -1,17 +1,22 @@
 # LiveGantt
-O# O4697 
 
-### Local Installation
-1. First, clone https://gitlab.newmexicoconsortium.org/lanl-ccu/evalys and run:
-```python3 -m pip install ./evalys```
+Copyright Notice
+----------------
+LiveGantt authored by Vivian Hafener. Copyright © 2024 Triad National Security, LLC.
+Release Approved Under O#4697 - LANL-contributed enhancements to BatSim toolstack.
+
+## Local Installation
+1. First, clone https://github.com/hpc/Evalys-LANL and run:
+```python3 -m pip install ./evalys``` It is critical that you install from this version locally instead of the evalys pip package.
 2. Then, clone this repo.
 3. After cloning, install everything in `requirements.txt`, except for evalys (you've already installed the modified version of this component)
 4. There are two ways to run the program from here.
-## Command line operation - single-cluster operation
-You can call LiveGantt via the command line using a wide range of arguments. 
 
-```python3 src/__main__.py -i/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt -o/Users/vhafener/Repos/LiveGantt/Charts/ -t168 -c508 -kFalse```
-This line launches LiveGantt with the inputfile(`-i`) "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt" the output folder location(`-o`) "/Users/vhafener/Repos/LiveGantt/Charts/" the timespan (`-t`) of 168 hours, the node count (`-c`) of 508, and cache (`-k`) disabled "False"  
+## Collecting sacct data from your cluster
+1. Copy collectSacctDB.sh a node to your cluster that runs Slurm, and make it executable
+2. Run it, and take note of the file that it's created. 
+3. Copy that file back to the system you intend to run LiveGantt on. This will be your 'inputpath'. 
+4. If you run into trouble with sanitization.py or during primary LiveGantt operation due to data formatting, sanitization.py is where all of the incoming data is formatted into something readable by Evalys and LiveGantt. 
 
 ## Traditional operation - single- or multi-cluster operation
 Edit the parameters in lines 130-150 of `src/__main__.py` to match the clusters you want to generate charts for, and the proper paths for the input files and such. Launch by running:
@@ -25,12 +30,12 @@ Here's a closer look at the visualization parameters for a cluster:
 inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
 outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
 timeframe = 1440
-count = 508
+count = 300
 cache = True
 
 clear_cache = False
-coloration_set = ["power", "project", "exitstate", "partition",
-                  "wait"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
+coloration_set = ["power"", "exitstate", "partition",
+                  "wait"]  # Options are "default", "partition", "wait", "power", "exitstate", "wasted_time". If you leave this blank, it will only compute a utilization line chart.
 vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
 
 ```
@@ -44,12 +49,18 @@ vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, colo
 * ```coloration_set``` - this field contains a set of strings that define which coloration schemes to create charts for
 * The final line is necessary to append this set of values to the overall vizset. Because of this structure, you can add as many clusters as you want
 
+<!-- ## Command line operation - single-cluster operation
+You can call LiveGantt via the command line using a wide range of arguments. 
+
+```python3 src/__main__.py -i/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt -o/Users/vhafener/Repos/LiveGantt/Charts/ -t168 -c508 -kFalse```
+This line launches LiveGantt with the inputfile(`-i`) "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2024-01-01T00:00.no-identifiers.txt" the output folder location(`-o`) "/Users/vhafener/Repos/LiveGantt/Charts/" the timespan (`-t`) of 168 hours, the node count (`-c`) of 508, and cache (`-k`) disabled "False"   -->
+
 ## Automation of LiveGantt runs using Slurm
 LiveGantt can also be launched using Slurm and the scrontab functionality. This functionality is in progress and has not been completed or finalized/tested yet. 
 
 The file `./SBATCH_LIVEGANTT.sh` is a sample SBATCH script which should generate charts for the system it is run on for the past week. The goal of this code is to be launched weekly via scontab. 
 
-Build.sh builds and exports a container from the Dockerfile to an oci image located in the oci_images folder. 
+Build.sh builds and exports a container from the Dockerfile to an oci image located in the oci_images folder. Eventually this will be moved to Charliecloud.
 
 ## Adding a New Data Field From Slurm
 1. Add field to the FIELDS line of collectSacctDB.sh. Ensure that field length is such that data does not get cropped short.
@@ -109,6 +120,7 @@ Here's a closer look at that round robin coloration function:
 This takes the job that it is provided and the palette that has been defined and returns the color to apply to the job based on the parameters. 
 
 ###### Partition Rectangle
+This snippet generates a palette based on the number of partitions on the cluster, then returns a rectangle colored based on the partition, with the opacity (alpha) set based on the job's project, or account.
 ```
 def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
                                     num_top_users=None, partition_count=None, edge_color="black"):
@@ -118,6 +130,9 @@ def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projec
                                       alpha=job["normalized_account"], edge_color=edge_color,
                                       palette=PALETTE_USED)
 ```
+###### Exitstate Rectangle
+The following code parses the "success" field of the job and colorizes the rectangle based on the value of that field.
+
 ```
  def _return_success_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
                                   num_top_users=None, partition_count=None, edge_color="black"):
@@ -150,6 +165,8 @@ def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projec
             return self._create_rectangle(job, x0, duration, height, itv, lambda _: "#0019FF", facecolor="#0019FF",
                                           edge_color=edge_color)
 ```
+###### Power Rectangle
+The following code utilizes a red-green palette and returns a matching value based on the job's normalized power per node hour field.
 ```
  def _return_power_rectangle(self, job, x0, duration, height, itv, num_projects=None, num_users=None,
                                num_top_users=None, partition_count=None, edge_color="black"):
@@ -158,4 +175,5 @@ def _return_partition_rectangle(self, job, x0, duration, height, itv, num_projec
         return self._create_rectangle(job, x0, duration, height, itv, self.power_color_map, edge_color=edge_color, palette=PALETTE_USED)
 ```
 
-IN PROGRESS
+#### Contact Us
+Do you use this tool on your cluster? Do you want to use it but it's not working for you? Email me! Send me your cluster pictures! vhafener@lanl.gov
