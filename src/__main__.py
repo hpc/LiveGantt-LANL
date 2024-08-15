@@ -12,6 +12,7 @@ import sanitization
 import seaborn as sns
 import traceback
 from evalys.jobset import JobSet
+import yaml
 
 from evalys.utils import cut_workload
 from evalys.visu.gantt import plot_gantt_df
@@ -69,42 +70,24 @@ def main(argv):
 
     # Debug options below
 
-   # Chicoma
-    inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
-    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 360
-    count = 1792
-    cache = False 
-    clear_cache = False
-    projects_in_legend = False
-    utilization=False
-    coloration_set = []
-    # # # coloration_set = ["default", "user", "user_top_20", "sched", "wait", "partition", "dependency"]  # Options are "default", "sched", "wait", "partition", "wasted_time", "power"
-    vizset.append(
-        (
-            inputpath,
-            outputpath,
-            timeframe,
-            count,
-            cache,
-            clear_cache,
-            coloration_set,
-            projects_in_legend,
-            utilization,
-        )
-    )
 
-    # Roci
-    inputpath = "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
-    outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-    timeframe = 360
-    count = 508
-    cache = False
-    clear_cache = False
-    projects_in_legend=True
-    utilization=True
-    coloration_set = ["default", "power", "wait", "partition", "exitstate"]  # Options are "default", "project", "user", "user_top_20", "sched", "wait", and "dependency"
-    vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization))
+    config = open('/Users/vhafener/Repos/LiveGantt/src/config.yaml', 'r')
+    config_yaml = yaml.safe_load(config)
+
+    # Extract information from YAML
+    for cluster in config_yaml['clusters']:
+        cluster_info = config_yaml['clusters'][cluster]
+        inputpath = cluster_info['inputpath']
+        outputpath = cluster_info['outputpath']
+        timeframe = cluster_info['timeframe']
+        count = cluster_info['count']
+        cache = cluster_info['cache']
+        clear_cache = cluster_info['clear_cache']
+        projects_in_legend = cluster_info['projects_in_legend']
+        utilization = cluster_info['utilization']
+        coloration_set = cluster_info['coloration_set']
+        vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization))
+    
     
     # You can put as many clusters as you want here! If you add it to the vizset, it'll launch 
    
@@ -179,6 +162,7 @@ def ganttLastNHours(
             coloration, project_count, user_count, user_top_20_count
         )
         print("Starting chart generation for: "+clusterName +" with coloration method: "+coloration)
+        dpi=500
         try:
             if clusterName != "chicoma" and clusterName != "rocinante":
                 plot_gantt_df(
@@ -190,7 +174,7 @@ def ganttLastNHours(
                     + clusterName
                     + " at "
                     + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
-                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours, dpi=dpi),
                     colorationMethod=coloration,
                     num_projects=project_count,
                     num_users=user_count,
@@ -210,7 +194,7 @@ def ganttLastNHours(
                     + clusterName
                     + " at "
                     + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
-                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours),
+                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours, dpi=dpi),
                     colorationMethod=coloration,
                     num_projects=project_count,
                     num_users=user_count,
@@ -226,10 +210,12 @@ def ganttLastNHours(
             traceback.print_exc()
             pass 
         # Save the figure out to a name based on the end time
-        if coloration == "partition":
-            dpi = 800
-        else:
-            dpi = 500
+        # Why was I doing this? Moved DPI to line 182
+        # if coloration == "partition":
+        #     dpi = 800
+        # else:
+        #     dpi = 500
+        
 
         plt.xlabel("Time")
         plt.ylabel("Node ID")
@@ -502,25 +488,31 @@ def seekLastLine(outJobsCSV, endColIndex, startColIndex, index):
             )
 
 
-def setDimensions(nodeCount=0, hours=24):
+def setDimensions(nodeCount=0, hours=24, dpi=500):
     """
     Set the dimensions of the plot
     :param nodeCount: Size of the cluster
     :param hours: Size of the window
     :return: Dimensions to use for the plot
     """
+
     threshold_a = 48
     threshold_b = 600
     threshold_c = 1500
 
     if nodeCount <= threshold_a:
-        return hours * 0.5, 12
+        width = hours * 0.5, 12
     elif threshold_a < nodeCount <= threshold_b:
-        return hours * 0.5, 12
+        width= hours * 0.5, 12
     elif threshold_b < nodeCount <= threshold_c:
-        return hours * 0.5, 18
+        width= hours * 0.5, 18
     elif nodeCount > threshold_c:
-        return hours * 0.5, 35
+        width= hours * 0.5, 35
+    if width[0]*dpi > 65536:
+        width2 = 65500/dpi, width[1]
+        return width2
+    else:
+        return width
 
 
 if __name__ == "__main__":

@@ -21,24 +21,29 @@ Release Approved Under O#4697 - LANL-contributed enhancements to BatSim toolstac
 4. If you run into trouble with sanitization.py or during primary LiveGantt operation due to data formatting, sanitization.py is where all of the incoming data is formatted into something readable by Evalys and LiveGantt. 
 
 ## Traditional operation - single- or multi-cluster operation
-Edit the parameters in lines 130-150 of `src/__main__.py` to match the clusters you want to generate charts for, and the proper paths for the input files and such. Launch by running:
+Edit the parameters in `config.yaml` to match the clusters you want to generate charts for, and the proper paths for the input files and such. Launch by running:
 ```python3 src/__main__.py```
 
 Here's a closer look at the visualization parameters for a cluster:
 
 ```
-
-# Roci
-inputpath = "/Users/vhafener/Repos/LiveGantt/sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt"
-outputpath = "/Users/vhafener/Repos/LiveGantt/Charts/"
-timeframe = 1440
-count = 300
-cache = True
-
-clear_cache = False
-coloration_set = ["power"", "exitstate", "partition",
-                  "wait"]  # Options are "default", "partition", "wait", "power", "exitstate", "wasted_time". If you leave this blank, it will only compute a utilization line chart.
-vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set))
+roci:
+    inputpath: "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    outputpath: "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe: 360
+    count: 508
+    cache: False
+    clear_cache: False
+    projects_in_legend: True
+    utilization: True
+    coloration_set: 
+      - default
+      - power
+      - wait
+      - partition
+      - exitstate
+      - sched
+      - partition
 
 ```
 

@@ -1,0 +1,32 @@
+---
+clusters:
+  chicoma:
+    inputpath: "/Users/vhafener/Repos/LiveGantt/sacct.out.chicoma.start=2024-01-01T00:00.no-identifiers.txt"
+    outputpath: "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe: 360
+    count: 1792
+    cache: False 
+    clear_cache: False
+    projects_in_legend: False
+    utilization: False
+    coloration_set:
+      - default
+      - power
+      - wait
+  roci:
+    inputpath: "sacct.out.rocinante.start=2024-06-06T00:00.no-identifiers.txt"
+    outputpath: "/Users/vhafener/Repos/LiveGantt/Charts/"
+    timeframe: 360
+    count: 508
+    cache: False
+    clear_cache: False
+    projects_in_legend: True
+    utilization: True
+    coloration_set: 
+      - default
+      - power
+      - wait
+      - partition
+      - exitstate
+      - sched
+      - partition

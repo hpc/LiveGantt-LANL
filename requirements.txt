@@ -7,3 +7,4 @@ batvis~=1.0.0
 #evalys~=5.0.0
 procset~=1.0
 setuptools~=65.5.1
+pyyaml
