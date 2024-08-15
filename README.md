@@ -7,10 +7,12 @@ Release Approved Under O#4697 - LANL-contributed enhancements to BatSim toolstac
 
 ## Local Installation
 1. First, clone https://github.com/hpc/Evalys-LANL and run:
-```python3 -m pip install ./evalys``` It is critical that you install from this version locally instead of the evalys pip package.
-2. Then, clone this repo.
-3. After cloning, install everything in `requirements.txt`, except for evalys (you've already installed the modified version of this component)
-4. There are two ways to run the program from here.
+```python3 -m pip install ./Evalys-LANL``` It is critical that you install from this version locally instead of the evalys pip package.
+2. Next, clone https://github.com/hpc/BatsimGantt-LANL and run:
+```python3 -m pip install ./BatsimGantt-LANL```
+3. Then, clone this repo.
+4. After cloning, install everything in `requirements.txt`, except for evalys (you've already installed the modified version of this component)
+5. There are two ways to run the program from here.
 
 ## Collecting sacct data from your cluster
 1. Copy collectSacctDB.sh a node to your cluster that runs Slurm, and make it executable
