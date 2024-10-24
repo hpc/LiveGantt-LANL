@@ -118,7 +118,10 @@ def ganttLastNHours(
     :param outputpath: the file to write the produced chart out to
     :return:
     """
-    clusterName = outJobsCSV.split(".")[2]
+    try:
+        clusterName = outJobsCSV.split(".")[2]
+    except:
+        clusterName = "undefined_cluster_name"
     if outputpath is None:
         outputpath = (
             "Charts_for_"
@@ -137,9 +140,12 @@ def ganttLastNHours(
         )
     check_output_dir_validity(outputpath)
     # Print some basic information on the operating parameters
-    chartEndTime, chartStartTime = initialization(
-        clusterName, clusterSize, hours, outJobsCSV
-    )
+    #chartEndTime, chartStartTime = initialization(
+    #    clusterName, clusterSize, hours, outJobsCSV
+    #)
+    # TODO FOR TESTING ONLY
+    chartEndTime="2024-10-24T:20:00:00"
+    chartStartTime="2024-10-24T:08:00:00"
 
     # Sanitize the data from the inputfile
     df = check_cache_and_return_df(cache, clear_cache, outJobsCSV)
@@ -397,11 +403,11 @@ def parse_start_and_end(outJobsCSV):
         header = f.readlines()[0].split(",")
         indices = []
         for i, elem in enumerate(header):
-            if "Start" in elem:
+            if "Start" or "START_TIME" in elem:
                 indices.append(i)
         startColIndex = indices[0]
         for i, elem in enumerate(header):
-            if "End" in elem:
+            if "End" or "END_TIME" in elem:
                 indices.append(i)
         endColIndex = indices[1]
     return endColIndex, startColIndex
