@@ -15,7 +15,7 @@ from evalys.jobset import JobSet
 import yaml
 
 from evalys.utils import cut_workload
-from evalys.visu.gantt import plot_gantt_df
+from evalys.visu.gantt import plot_gantt_df, plot_double_gantt_df
 from procset import ProcInt
 
 # Set the font size to prevent overlap of datestamps
@@ -71,7 +71,7 @@ def main(argv):
     # Debug options below
 
 
-    config = open('/Users/vhafener/Repos/LiveGantt/src/config.yaml', 'r')
+    config = open('/Users/vhafener/Repos/myCodes/LiveGantt/src/config.yaml', 'r')
     config_yaml = yaml.safe_load(config)
 
     # Extract information from YAML
@@ -81,19 +81,21 @@ def main(argv):
         outputpath = cluster_info['outputpath']
         timeframe = cluster_info['timeframe']
         count = cluster_info['count']
+        count2 = cluster_info['count2']
+        start2 = cluster_info['start2']
         cache = cluster_info['cache']
         clear_cache = cluster_info['clear_cache']
         projects_in_legend = cluster_info['projects_in_legend']
         utilization = cluster_info['utilization']
         coloration_set = cluster_info['coloration_set']
-        vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization))
+        vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization, count2, start2))
     
     
     # You can put as many clusters as you want here! If you add it to the vizset, it'll launch 
    
     # Produce the chart
     for set in vizset:
-        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7], set[8])
+        ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7], set[8], set[9], set[10])
         
 
     # Cleanup workdir
@@ -111,6 +113,8 @@ def ganttLastNHours(
     coloration_set=["default"],
     project_in_legend=True,
     utilization=True,
+    count2=None,
+    start2=None,
 ):
     """
     Plots a gantt chart for the last N hours
@@ -149,7 +153,7 @@ def ganttLastNHours(
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
-    totalDf, user_top_20_count = calculate_top_N(totalDf)
+    totalDf, user_top_20_count = calculate_top_N(totalDf) # TODO Pull this out unless mode is user
 
     edgeMethod = "default"
 
@@ -164,7 +168,28 @@ def ganttLastNHours(
         print("Starting chart generation for: "+clusterName +" with coloration method: "+coloration)
         dpi=500
         try:
-            if clusterName != "chicoma" and clusterName != "rocinante":
+            if clusterName == "venado" or clusterName == "Venado" or clusterName == "VENADO":
+                plot_double_gantt_df(
+                    totalDf,
+                    ProcInt(0, clusterSize - 1),
+                    ProcInt(start2, start2 + count2 - 1),
+                    chartStartTime,
+                    chartEndTime,
+                    title="Schedule for cluster "
+                    + clusterName
+                    + " at "
+                    + chartEndTime.strftime("%H:%M:%S on %d %B, %Y"),
+                    dimensions=setDimensions(nodeCount=clusterSize, hours=hours, dpi=dpi),
+                    colorationMethod=coloration,
+                    num_projects=project_count,
+                    num_users=user_count,
+                    num_top_users=user_top_20_count,
+                    resvSet=parse_reservation_set(totalDf),
+                    partition_count=partition_count,
+                    edgeMethod=edgeMethod,
+                    project_in_legend=project_in_legend,
+                )
+            elif clusterName != "chicoma" and clusterName != "rocinante":
                 plot_gantt_df(
                     totalDf,
                     ProcInt(0, clusterSize - 1),
