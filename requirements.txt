@@ -1,10 +1,10 @@
 yaspin
-matplotlib~=3.8.0
+matplotlib
 seaborn
-pandas~=2.1.1
+pandas
 
-batvis~=1.0.0
+# batvis~=1.0.0
 #evalys~=5.0.0
-procset~=1.0
-setuptools~=65.5.1
+procset
+setuptools
 pyyaml
