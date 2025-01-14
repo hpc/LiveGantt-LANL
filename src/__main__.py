@@ -13,6 +13,7 @@ import seaborn as sns
 import traceback
 from evalys.jobset import JobSet
 import yaml
+import subprocess
 
 from evalys.utils import cut_workload
 from evalys.visu.gantt import plot_gantt_df, plot_double_gantt_df
@@ -352,6 +353,9 @@ def initialization(clusterName, clusterSize, hours, outJobsCSV):
     print("Cluster name:\t" + clusterName)
     print("Size of cluster:\t" + str(clusterSize))
     print("\nDetermining chart window...")
+    # Remove all single quotes in the output file (fixes json behaviour)
+    subprocess.call(["sed", "-i", "-e",  's/\'//g', outJobsCSV])
+
     # Open the output file and figure out what columns hold 'Start' and 'End' time values
     endColIndex, startColIndex = parse_start_and_end(outJobsCSV)
     # Determine chart start and end times
