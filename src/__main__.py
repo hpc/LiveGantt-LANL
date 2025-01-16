@@ -284,6 +284,8 @@ def ganttLastNHours(
             windowStartTime=chartStartTime,
             windowFinishTime=chartEndTime,
             with_details=False,
+            clusterSize=clusterSize,
+            count2=count2,
         )
         plt.savefig(
             outputpath
