@@ -69,9 +69,7 @@ def main(argv):
         elif opt in "-h":
             coloration = str(arg)
 
-    # Debug options below
-
-
+    # Point this to the config file from which to load
     config = open('/Users/vhafener/Repos/myCodes/LiveGantt/src/config.yaml', 'r')
     config_yaml = yaml.safe_load(config)
 
@@ -82,8 +80,8 @@ def main(argv):
         outputpath = cluster_info['outputpath']
         timeframe = cluster_info['timeframe']
         count = cluster_info['count']
-        count2 = cluster_info['count2']
-        start2 = cluster_info['start2']
+        count2 = cluster_info['count2'] if 'count2' in cluster_info else None
+        start2 = cluster_info['start2'] if 'start2' in cluster_info else None
         cache = cluster_info['cache']
         clear_cache = cluster_info['clear_cache']
         projects_in_legend = cluster_info['projects_in_legend']
@@ -91,17 +89,9 @@ def main(argv):
         coloration_set = cluster_info['coloration_set']
         vizset.append((inputpath, outputpath, timeframe, count, cache, clear_cache, coloration_set, projects_in_legend, utilization, count2, start2))
     
-    
-    # You can put as many clusters as you want here! If you add it to the vizset, it'll launch 
-   
     # Produce the chart
     for set in vizset:
         ganttLastNHours(set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7], set[8], set[9], set[10])
-        
-
-    # Cleanup workdir
-    # os.remove("out.txt")
-    # os.remove(inputpath)
 
 
 def ganttLastNHours(
@@ -123,7 +113,10 @@ def ganttLastNHours(
     :param outputpath: the file to write the produced chart out to
     :return:
     """
+    # Parse the clusterName from the name of the CSV to load
     clusterName = outJobsCSV.split(".")[2]
+
+    # Set the directory in which to drop the charts. By default, this is the working directory
     if outputpath is None:
         outputpath = (
             "Charts_for_"
@@ -141,6 +134,7 @@ def ganttLastNHours(
             + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         )
     check_output_dir_validity(outputpath)
+
     # Print some basic information on the operating parameters
     chartEndTime, chartStartTime = initialization(
         clusterName, clusterSize, hours, outJobsCSV
@@ -148,16 +142,14 @@ def ganttLastNHours(
 
     # Sanitize the data from the inputfile
     df = check_cache_and_return_df(cache, clear_cache, outJobsCSV)
-
+    # Determine the length of the longest job
     maxJobLen = batvis.utils.getMaxJobLen(df)
     # Cut the jobset to the size of the window
     cut_js = cut_workload(df, chartStartTime - maxJobLen, chartEndTime + maxJobLen)
     # Reconstruct a total jobset dataframe from the output of the cut_workload function
     totalDf = pandas.concat([cut_js["workload"], cut_js["running"], cut_js["queue"]])
     totalDf, user_top_20_count = calculate_top_N(totalDf) # TODO Pull this out unless mode is user
-
     edgeMethod = "default"
-
     project_count = totalDf["account"].unique().size
     user_count = totalDf["user"].unique().max()
     partition_count = totalDf["partition"].unique().size
@@ -169,6 +161,7 @@ def ganttLastNHours(
         print("Starting chart generation for: "+clusterName +" with coloration method: "+coloration)
         dpi=500
         try:
+            # VENADO
             if clusterName == "venado" or clusterName == "Venado" or clusterName == "VENADO":
                 plot_double_gantt_df(
                     totalDf,
@@ -190,6 +183,7 @@ def ganttLastNHours(
                     edgeMethod=edgeMethod,
                     project_in_legend=project_in_legend,
                 )
+            # Non-shasta Clusters
             elif clusterName != "chicoma" and clusterName != "rocinante":
                 plot_gantt_df(
                     totalDf,
@@ -210,6 +204,7 @@ def ganttLastNHours(
                     edgeMethod=edgeMethod,
                     project_in_legend=project_in_legend,
                 )
+            # Shasta clusters
             else:
                 plot_gantt_df(
                     totalDf,
@@ -235,19 +230,14 @@ def ganttLastNHours(
             print("\n\n Exception:\n")
             traceback.print_exc()
             pass 
-        # Save the figure out to a name based on the end time
-        # Why was I doing this? Moved DPI to line 182
-        # if coloration == "partition":
-        #     dpi = 800
-        # else:
-        #     dpi = 500
         
-
+        # Set plot parameter
         plt.xlabel("Time")
         plt.ylabel("Node ID")
-
         plt.tight_layout()
+
         if coloration == "exitstate":
+            # If we are using exitstate, set hashes on the X axis
             sns.rugplot(
                 data=totalDf[totalDf["failedNode"].notnull()],
                 x="starting_time",
@@ -274,7 +264,10 @@ def ganttLastNHours(
 
         # Close the figure
         plt.close()
+
+    # If the user has requested a utilization load plot ...
     if utilization:
+        # Drop reservations from the DF so that they don't get counted towards utilization
         for index, row in totalDf.iterrows():
             if row["purpose"] == "reservation":
                 totalDf.drop(labels=index, axis=0, inplace=True)

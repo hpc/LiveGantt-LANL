@@ -1,7 +1,7 @@
 ---
 clusters:
   venado:
-    inputpath: "sacct.out.venado.start=2024-09-01T00:00.no-identifiers.txt" 
+    inputpath: "sacct.out.venado.start=2024-12-09T00:00.not-anonymized.delim" 
     outputpath: "/Users/vhafener/Repos/myCodes/LiveGantt/Charts/"
     timeframe: 726
     count: 920
@@ -10,7 +10,25 @@ clusters:
     cache: False
     clear_cache: True
     projects_in_legend: False
-    utilization: False
+    utilization: True
     coloration_set: 
-      - user
-      - project
+      - default
+      - power
+      - wait
+      - partition
+      - exitstate
+  # rocinante:
+  #   inputpath: "sacct.out.rocinante.start=2023-12-01T00:00.no-identifiers.txt" 
+  #   outputpath: "/Users/vhafener/Repos/myCodes/LiveGantt/Charts/"
+  #   timeframe: 168
+  #   count: 508
+  #   cache: False
+  #   clear_cache: True
+  #   projects_in_legend: False
+  #   utilization: True
+  #   coloration_set: 
+  #     - default
+  #     - power
+  #     - wait
+  #     - partition
+  #     - exitstate
